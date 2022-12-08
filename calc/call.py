@@ -49,7 +49,8 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
     @limits(calls=4, period=60)
     def submit(self, atoms: Atoms, id_) -> bool:
         try:
-            dir = f'calc/files/{uuid.uuid4().hex[:6].upper()}'
+            uuid_ = uuid.uuid4()
+            dir = f'calc/files/{uuid_}'
             file = dir + '.log'
             atoms = atoms.copy()
             self.pm7_opt.label = dir
