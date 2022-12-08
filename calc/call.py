@@ -28,7 +28,7 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
     functional = 'M06'
     basis = 'jun-cc-pvtz'
     opt_calc = Gaussian(method=f'opt {functional}/{basis} IOP(2/9=2000) ', nprocshared=48, mem='100GB', )
-    opt_calc.command = 'srun -n g16 48 < PREFIX.com > PREFIX.log'
+    opt_calc.command = 'srun -n 48 g16< PREFIX.com > PREFIX.log'
     td_calc = Gaussian(method=f'{functional}/{basis} IOP(2/9=2000) scrf=(smd,solvent=cyclohexane)  TD(nstates=30) ',
                        nprocshared=48, mem='100GB', )
 
