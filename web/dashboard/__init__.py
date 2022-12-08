@@ -101,24 +101,9 @@ def init_callbacks(app, db):
     def update_output(n_clicks, smiles):
         if smiles is None:
             return 'Use Chemdraw copy as smiles for input'
-        try:
-            rdkit_mol = Chem.MolFromSmiles(smiles)
-        except ArgumentError:
-            return 'Smiles wrong'
-        if rdkit_mol is None:
-            return 'Smiles wrong'
-        AllChem.Compute2DCoords(rdkit_mol)
-        img = rdkit_2_base64png(rdkit_mol)
-        canonical_smiles = Chem.MolToSmiles(rdkit_mol)
-        ase_atom = smiles_2_ase(smiles)
-        id_ = db.reserve(name_clean=canonical_smiles)
-        if id_ is not None:
-            db.update(atoms=ase_atom, id=id_, data={'img': img})
-            submit_cls.thread_submit(ase_atom, id_)
-            return f'Smiles {smiles} has been submitted'
         else:
-            return f'Structure {smiles} submitted early'
 
+            return submit_cls.smiles_submit(smiles)
     @app.callback(
         Output('database-table', 'data'),
 

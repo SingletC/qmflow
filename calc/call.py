@@ -1,5 +1,6 @@
 import os
 import threading
+from argparse import ArgumentError
 from typing import Protocol
 
 import uuid as uuid
@@ -11,7 +12,7 @@ from ase.io import read
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-from calc.utils import opt_pm7, read_td_dft
+from calc.utils import opt_pm7, read_td_dft, rdkit_2_base64png, smiles_2_ase
 
 
 class SubmitJobProtocol(Protocol):
@@ -60,3 +61,24 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
     def thread_submit(self, atoms: Atoms, id_):
         t = threading.Thread(target=self.submit, args=[atoms, id_])
         t.start()
+
+    def smiles_submit(self,smiles):
+        if smiles is None:
+            return 'Empty Smiles'
+        try:
+            rdkit_mol = Chem.MolFromSmiles(smiles)
+        except ArgumentError:
+            return 'Smiles wrong'
+        if rdkit_mol is None:
+            return 'Smiles wrong'
+        AllChem.Compute2DCoords(rdkit_mol)
+        img = rdkit_2_base64png(rdkit_mol)
+        canonical_smiles = Chem.MolToSmiles(rdkit_mol)
+        ase_atom = smiles_2_ase(smiles)
+        id_ = self.db.reserve(name_clean=canonical_smiles)
+        if id_ is not None:
+            self.db.update(atoms=ase_atom, id=id_, data={'img': img})
+            self.thread_submit(ase_atom, id_)
+            return f'Smiles {smiles} has been submitted'
+        else:
+            return f'Structure {smiles} submitted early'
