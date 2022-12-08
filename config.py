@@ -30,4 +30,4 @@ class Config:
     # Gaussian
     GAUSSIAN_CMD = environ.get("GAUSSIAN_CMD")
     GAUSSIAN_N = environ.get("GAUSSIAN_N")
-    GAUSSIAN_MEM = environ.get("GAUSSIAN_MEM")
+    GAUSSIAN_M = environ.get("GAUSSIAN_M")
