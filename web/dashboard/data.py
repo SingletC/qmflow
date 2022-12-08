@@ -16,11 +16,14 @@ def create_dataframe(db: ase.db.core.Database, selection=None, columns=None):
     for i in query:
         row = []
         for column in columns:
-            row+=[getattr(i,column )]
-        row +=[f'<img src="data:image/png;;base64, {i.data.img}">']
+            try:
+                row+=[getattr(i,column )]
+            except AttributeError:
+                row+=[0]
+        row +=[f'<img src="data:image/png;;base64, {i.data.get("img","")}">']
         table +=[row]
     columns.append('Structure')
     df = pd.DataFrame(table,columns=columns)
     ini_time_for_now = datetime.now()
-    df['ctime'] = df['ctime'].apply(lambda x: (-pd.Timedelta(x,"h").to_pytimedelta()+ini_time_for_now).strftime("%m/%d/%Y, %H:%M"))
+    # df['ctime'] = df['ctime'].apply(lambda x: (-pd.Timedelta(x,"h").to_pytimedelta()+ini_time_for_now).strftime("%m/%d/%Y, %H:%M"))
     return df

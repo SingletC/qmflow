@@ -1,11 +1,13 @@
 """Initialize Flask app."""
 from flask import Flask
 from flask_assets import Environment
+from flask_basicauth import BasicAuth
 
 
 def init_app():
     """Construct core Flask application with embedded Dash app."""
     app = Flask(__name__, instance_relative_config=False)
+    basic_auth = BasicAuth(app)
     app.config.from_object("config.Config")
     assets = Environment()
     assets.init_app(app)

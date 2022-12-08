@@ -14,7 +14,9 @@ class Config:
     FLASK_APP = "wsgi.py"
     FLASK_ENV = environ.get("FLASK_ENV")
     SECRET_KEY = environ.get("SECRET_KEY")
-
+    BASIC_AUTH_FORCE = True
+    BASIC_AUTH_USERNAME = environ.get("BASIC_AUTH_USERNAME")
+    BASIC_AUTH_PASSWORD = environ.get("BASIC_AUTH_PASSWORD")
     # Assets
     LESS_BIN = environ.get("LESS_BIN")
     ASSETS_DEBUG = environ.get("ASSETS_DEBUG")
