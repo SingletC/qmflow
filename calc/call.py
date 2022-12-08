@@ -13,7 +13,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 
 from calc.utils import opt_pm7, read_td_dft, rdkit_2_base64png, smiles_2_ase
-from ratelimit import limits, sleep_and_retry
+from ratelimit import limits, sleep_and_retry, RateLimitException
 
 
 class SubmitJobProtocol(Protocol):
@@ -65,6 +65,8 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
             lambda_ = r[0]
             osc_str = r[1]
             self.db.update(id=id_, atoms=opt, lambda_=lambda_, osc_str=osc_str, data={'file_path': file})
+        except RateLimitException:
+            raise RateLimitException
         except Exception:
             print('dir')
         return True
