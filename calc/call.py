@@ -1,3 +1,5 @@
+import os
+import threading
 from typing import Protocol
 
 import uuid as uuid
@@ -25,13 +27,15 @@ class SubmitJobProtocol(Protocol):
 
 
 class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
-    functional = 'M06'
-    basis = 'jun-cc-pvtz'
-    opt_calc = Gaussian(method=f'opt {functional}/{basis} IOP(2/9=2000) ', nprocshared=48, mem='100GB', )
-    opt_calc.command = 'srun -c 48 g16 < PREFIX.com > PREFIX.log'
-    td_calc = Gaussian(method=f'{functional}/{basis} IOP(2/9=2000) scrf=(smd,solvent=cyclohexane)  TD(nstates=30) ',
-                       nprocshared=48, mem='100GB', )
-    td_calc.command = 'srun -c 48 g16 < PREFIX.com > PREFIX.log'
+    functional = os.getenv('functional','M06')
+    basis = os.getenv('basis', 'jun-cc-pvtz')
+    opt_calc = Gaussian(method=f'opt {functional}/{basis} IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'),
+                        mem=os.getenv('GAUSSIAN_M'), )
+    opt_calc.command = os.getenv('GAUSSIAN_CMD')
+    td_calc = Gaussian(method=f'{functional}/{basis} IOP(2/9=2000) scrf=(smd,solvent=cyclohexane)  TD(nstates=30) '
+                       , nprocshared=os.getenv('GAUSSIAN_N'),
+                       mem=os.getenv('GAUSSIAN_M'), )
+    td_calc.command = os.getenv('GAUSSIAN_CMD')
 
     def __init__(self, db: ase.db.core.Database):
         self.db = db
@@ -50,5 +54,9 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
         r = read_td_dft(file, t=0.05)
         lambda_ = r[0]
         osc_str = r[1]
-        self.db.update(id=id_,atoms=opt,lambda_=lambda_,osc_str=osc_str,data={'file_path':file})
+        self.db.update(id=id_, atoms=opt, lambda_=lambda_, osc_str=osc_str, data={'file_path': file})
         return True
+
+    def thread_submit(self, atoms: Atoms, id_):
+        t = threading.Thread(target=self.submit, args=[atoms, id_])
+        t.start()

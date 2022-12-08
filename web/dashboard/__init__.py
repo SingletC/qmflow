@@ -114,9 +114,7 @@ def init_callbacks(app, db):
         id_ = db.reserve(name_clean=canonical_smiles)
         if id_ is not None:
             db.update(atoms=ase_atom, id=id_, data={'img': img})
-            submit_cls.submit(ase_atom, id_)
-            # t = threading.Thread(target=submit_cls.submit,args=[ase_atom,id_])
-            # t.start()
+            submit_cls.thread_submit(ase_atom, id_)
             return f'Smiles {smiles} has been submitted'
         else:
             return f'Structure {smiles} submitted early'

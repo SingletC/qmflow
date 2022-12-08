@@ -26,3 +26,8 @@ class Config:
     STATIC_FOLDER = "static"
     TEMPLATES_FOLDER = "templates"
     COMPRESSOR_DEBUG = environ.get("COMPRESSOR_DEBUG")
+
+    # Gaussian
+    GAUSSIAN_CMD = environ.get("GAUSSIAN_CMD")
+    GAUSSIAN_N = environ.get("GAUSSIAN_N")
+    GAUSSIAN_MEM = environ.get("GAUSSIAN_MEM")
