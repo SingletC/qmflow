@@ -30,6 +30,9 @@ class SubmitJobProtocol(Protocol):
 class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
     functional = os.getenv('functional','M06')
     basis = os.getenv('basis', 'jun-cc-pvtz')
+    pm7_opt = Gaussian(method=f'opt PM3 IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'),
+                        mem=os.getenv('GAUSSIAN_M'), )
+    pm7_opt.command = os.getenv('GAUSSIAN_CMD')
     opt_calc = Gaussian(method=f'opt {functional}/{basis} IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'),
                         mem=os.getenv('GAUSSIAN_M'), )
     opt_calc.command = os.getenv('GAUSSIAN_CMD')
@@ -45,9 +48,11 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
         dir = f'calc/files/{uuid.uuid4().hex[:6].upper()}'
         file = dir + '.log'
         atoms = atoms.copy()
-        atoms = opt_pm7(atoms)
+        self.pm7_opt.label = dir
+        self.pm7_opt.calculate(atoms=atoms)
+        pm7 = read(file)
         self.opt_calc.label = dir
-        self.opt_calc.calculate(atoms=atoms)
+        self.opt_calc.calculate(atoms=pm7)
         opt = read(file)
         self.td_calc.label = dir
         self.td_calc.calculate(opt)
