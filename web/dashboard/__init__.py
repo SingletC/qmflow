@@ -77,7 +77,8 @@ def init_dashboard(server):
                 page_size=300,
                 markdown_options={'link_target': '_blank', "html": True},
                 style_cell_conditional=[{'if': {'column_id': 'Structure'},
-                                         'width': '400px'}, ]
+                                         'width': '400px'}, ],
+                persistence=True,
             ),
         ],
         id="dash-container",
