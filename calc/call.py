@@ -13,6 +13,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 
 from calc.utils import opt_pm7, read_td_dft, rdkit_2_base64png, smiles_2_ase
+from ratelimit import limits, sleep_and_retry
 
 
 class SubmitJobProtocol(Protocol):
@@ -44,23 +45,28 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
     def __init__(self, db: ase.db.core.Database):
         self.db = db
 
+    @sleep_and_retry
+    @limits(calls=4, period=60)
     def submit(self, atoms: Atoms, id_) -> bool:
-        dir = f'calc/files/{uuid.uuid4().hex[:6].upper()}'
-        file = dir + '.log'
-        atoms = atoms.copy()
-        self.pm7_opt.label = dir
-        self.pm7_opt.calculate(atoms=atoms)
-        pm7 = read(file)
-        self.opt_calc.label = dir
-        self.opt_calc.calculate(atoms=pm7)
-        opt = read(file)
-        self.td_calc.label = dir
-        self.td_calc.calculate(opt)
-        # td_mol = read(file)
-        r = read_td_dft(file, t=0.05)
-        lambda_ = r[0]
-        osc_str = r[1]
-        self.db.update(id=id_, atoms=opt, lambda_=lambda_, osc_str=osc_str, data={'file_path': file})
+        try:
+            dir = f'calc/files/{uuid.uuid4().hex[:6].upper()}'
+            file = dir + '.log'
+            atoms = atoms.copy()
+            self.pm7_opt.label = dir
+            self.pm7_opt.calculate(atoms=atoms)
+            pm7 = read(file)
+            self.opt_calc.label = dir
+            self.opt_calc.calculate(atoms=pm7)
+            opt = read(file)
+            self.td_calc.label = dir
+            self.td_calc.calculate(opt)
+            # td_mol = read(file)
+            r = read_td_dft(file, t=0.05)
+            lambda_ = r[0]
+            osc_str = r[1]
+            self.db.update(id=id_, atoms=opt, lambda_=lambda_, osc_str=osc_str, data={'file_path': file})
+        except Exception:
+            print('dir')
         return True
 
     def thread_submit(self, atoms: Atoms, id_):

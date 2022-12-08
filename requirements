@@ -2,3 +2,4 @@ flask
 flask_assets
 python-dotenv
 Flask-BasicAuth
+ratelimit
