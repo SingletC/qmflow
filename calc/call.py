@@ -68,7 +68,7 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
         except RateLimitException:
             raise RateLimitException
         except Exception:
-            print('dir')
+            print(dir)
         return True
 
     def thread_submit(self, atoms: Atoms, id_):
