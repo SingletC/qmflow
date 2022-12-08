@@ -29,18 +29,6 @@ class SubmitJobProtocol(Protocol):
 
 
 class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
-    functional = os.getenv('functional','M06')
-    basis = os.getenv('basis', 'jun-cc-pvtz')
-    pm7_opt = Gaussian(method=f'opt PM3 IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'),
-                        mem=os.getenv('GAUSSIAN_M'), )
-    pm7_opt.command = os.getenv('GAUSSIAN_CMD')
-    opt_calc = Gaussian(method=f'opt {functional}/{basis} IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'),
-                        mem=os.getenv('GAUSSIAN_M'), )
-    opt_calc.command = os.getenv('GAUSSIAN_CMD')
-    td_calc = Gaussian(method=f'{functional}/{basis} IOP(2/9=2000) scrf=(smd,solvent=cyclohexane)  TD(nstates=30) '
-                       , nprocshared=os.getenv('GAUSSIAN_N'),
-                       mem=os.getenv('GAUSSIAN_M'), )
-    td_calc.command = os.getenv('GAUSSIAN_CMD')
 
     def __init__(self, db: ase.db.core.Database):
         self.db = db
@@ -49,18 +37,31 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
     @limits(calls=4, period=60)
     def submit(self, atoms: Atoms, id_) -> bool:
         try:
+            functional = os.getenv('functional', 'M06')
+            basis = os.getenv('basis', 'jun-cc-pvtz')
+            pm7_opt = Gaussian(method=f'opt PM3 IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'),
+                               mem=os.getenv('GAUSSIAN_M'), )
+            pm7_opt.command = os.getenv('GAUSSIAN_CMD')
+            opt_calc = Gaussian(method=f'opt {functional}/{basis} IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'),
+                                mem=os.getenv('GAUSSIAN_M'), )
+            opt_calc.command = os.getenv('GAUSSIAN_CMD')
+            td_calc = Gaussian(
+                method=f'{functional}/{basis} IOP(2/9=2000) scrf=(smd,solvent=cyclohexane)  TD(nstates=30) '
+                , nprocshared=os.getenv('GAUSSIAN_N'),
+                mem=os.getenv('GAUSSIAN_M'), )
+            td_calc.command = os.getenv('GAUSSIAN_CMD')
             uuid_ = uuid.uuid4()
             dir = f'calc/files/{uuid_}'
             file = dir + '.log'
             atoms = atoms.copy()
-            self.pm7_opt.label = dir
-            self.pm7_opt.calculate(atoms=atoms)
+            pm7_opt.label = dir
+            pm7_opt.calculate(atoms=atoms)
             pm7 = read(file)
-            self.opt_calc.label = dir
-            self.opt_calc.calculate(atoms=pm7)
+            opt_calc.label = dir
+            opt_calc.calculate(atoms=pm7)
             opt = read(file)
-            self.td_calc.label = dir
-            self.td_calc.calculate(atoms=opt)
+            td_calc.label = dir
+            td_calc.calculate(atoms=opt)
             # td_mol = read(file)
             r = read_td_dft(file, t=0.05)
             lambda_ = r[0]
