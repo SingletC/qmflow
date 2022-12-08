@@ -65,10 +65,10 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
             lambda_ = r[0]
             osc_str = r[1]
             self.db.update(id=id_, atoms=opt, lambda_=lambda_, osc_str=osc_str, data={'file_path': file})
-        except RateLimitException:
-            raise RateLimitException
         except Exception as e:
             print(f'error\n {e}\n with {dir}')
+        except RateLimitException:
+            raise RateLimitException
         return True
 
     def thread_submit(self, atoms: Atoms, id_):
