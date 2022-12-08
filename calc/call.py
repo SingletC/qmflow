@@ -60,7 +60,7 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
             self.opt_calc.calculate(atoms=pm7)
             opt = read(file)
             self.td_calc.label = dir
-            self.td_calc.calculate(opt)
+            self.td_calc.calculate(atoms=opt)
             # td_mol = read(file)
             r = read_td_dft(file, t=0.05)
             lambda_ = r[0]
