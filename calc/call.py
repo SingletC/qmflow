@@ -31,6 +31,7 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
     opt_calc.command = 'srun -c 48 g16 < PREFIX.com > PREFIX.log'
     td_calc = Gaussian(method=f'{functional}/{basis} IOP(2/9=2000) scrf=(smd,solvent=cyclohexane)  TD(nstates=30) ',
                        nprocshared=48, mem='100GB', )
+    td_calc.command = 'srun -c 48 g16 < PREFIX.com > PREFIX.log'
 
     def __init__(self, db: ase.db.core.Database):
         self.db = db
