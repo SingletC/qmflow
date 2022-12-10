@@ -92,7 +92,7 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
         img = rdkit_2_base64png(rdkit_mol)
         canonical_smiles = Chem.MolToSmiles(rdkit_mol)
         ase_atom = smiles_2_ase(smiles)
-        id_ = self.db.reserve(name_clean=canonical_smiles)
+        id_ = self.db.reserve(name=canonical_smiles)
         if id_ is not None:
             self.db.update(atoms=ase_atom, id=id_, data={'img': img})
             self.thread_submit(ase_atom, id_)

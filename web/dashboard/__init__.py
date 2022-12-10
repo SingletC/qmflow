@@ -9,13 +9,16 @@ from dash import dash_table, Output, State, Input
 from dash import dcc
 from dash import html
 from rdkit import Chem
-from rdkit.Chem import AllChem, Draw
+from rdkit.Chem import AllChem, Draw, MolFromSmiles
 
 from calc.call import SubmitTDDFTViaAndromeda
 from calc.utils import smiles_2_ase, rdkit_2_base64png
 from .data import create_dataframe
 from .layout import html_layout
 import threading
+
+from .utils import split_filter_part
+
 
 def init_dashboard(server):
     """Create a Plotly Dash dashboard."""
@@ -72,46 +75,97 @@ def init_dashboard(server):
                 data=df.to_dict("records"),
                 sort_action="native",
                 sort_mode="native",
-                filter_action="native",
+                filter_action="custom",
+                filter_query='',
                 row_deletable=True,
                 page_size=300,
                 markdown_options={'link_target': '_blank', "html": True},
                 style_cell_conditional=[{'if': {'column_id': 'Structure'},
-                                         'width': '400px'}, ],
-                persistence=True,
+                                         'width': '400px'},
+                                        {'if': {'column_id': 'name'},
+                                         'maxWidth': '100px'},
+                                        ],
+                tooltip_data=[
+                    {
+                        column: {'value': str(value), 'type': 'text'}
+                        for column, value in row.items()
+                    } for row in df.to_dict('records')
+                ],
             ),
         ],
         id="dash-container",
     )
-    init_callbacks(dash_app, db)
+    callbacks = CallBacks(dash_app,db)
+    callbacks.init_callbacks()
     return dash_app.server
 
 
-def init_callbacks(app, db):
-    submit_cls = SubmitTDDFTViaAndromeda(db)
+class CallBacks:
+    def __init__(self, app: dash.Dash, db: ase.db.core.Database):
+        self.db = db
+        self.app = app
+        self.submit_cls = SubmitTDDFTViaAndromeda(db)
+        self.df = create_dataframe(db)
 
-    @app.callback(
-        Output('container-button-basic', 'children'),
-        Input('submit-val', 'n_clicks'),
-        State('input-on-submit', 'value'),
+    def init_callbacks(self):
 
-        running=[
-            (Output('container-button-basic', 'children'),f'Job has been submitted','Job has been submitted')
-        ]
-    )
-    def update_output(n_clicks, smiles):
-        if smiles is None:
-            return 'Use Chemdraw copy as smiles for input'
-        else:
+        @self.app.callback(
+            Output('container-button-basic', 'children'),
+            Input('submit-val', 'n_clicks'),
+            State('input-on-submit', 'value'),
 
-            return submit_cls.smiles_submit(smiles)
-    @app.callback(
-        Output('database-table', 'data'),
+            running=[
+                (Output('container-button-basic', 'children'), f'Job has been submitted', 'Job has been submitted')
+            ]
+        )
+        def update_output(n_clicks, smiles):
+            if smiles is None:
+                return 'Use Chemdraw copy as smiles for input'
+            else:
 
-        Input('submit-val', 'n_clicks'),
+                return self.submit_cls.smiles_submit(smiles)
 
-    )
-    def update_table_data(n_clicks):
-        """Create Dash datatable from Pandas DataFrame."""
-        df = create_dataframe(db)
-        return df.to_dict("records")
+        # @self.app.callback(
+        #     Output('database-table', 'data'),
+        #
+        #     Input('submit-val', 'n_clicks'),
+        #
+        # )
+        # def update_table_data(n_clicks):
+        #     """Create Dash datatable from Pandas DataFrame."""
+        #     self.df = create_dataframe(self.db)
+        #     return self.df .to_dict("records")
+
+        @self.app.callback(
+            Output('database-table', "data"),
+            Input('database-table', "filter_query"))
+        def update_table(filter):
+            filtering_expressions = filter.split(' && ')
+            dff = self.df.copy()
+            for filter_part in filtering_expressions:
+                if '{name}' in filter_part:
+                    col_name = 'name'
+                    operator = 'contains'
+                    filter_value = filter_part.split(' ')[-1]
+                else:
+                    col_name, operator, filter_value = split_filter_part(filter_part)
+
+                if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
+                    # these operators match pandas series operator method names
+                    dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
+                elif operator == 'contains':
+                    if col_name == 'name':
+                        match = Chem.MolFromSmiles(filter_value)
+                        p = Chem.AdjustQueryParameters.NoAdjustments()
+                        p.makeDummiesQueries = True
+                        match = Chem.AdjustQueryProperties(match, p)
+                        dff = dff[dff['name'].apply(lambda x: MolFromSmiles(x).HasSubstructMatch(match))]
+
+                    else:
+                        dff = dff.loc[dff[col_name].str.contains(filter_value)]
+                elif operator == 'datestartswith':
+                    # this is a simplification of the front-end filtering logic,
+                    # only works with complete fields in standard format
+                    dff = dff.loc[dff[col_name].str.startswith(filter_value)]
+
+            return dff.to_dict('records')
