@@ -1,6 +1,7 @@
 """Instantiate a Dash app."""
 import base64
 import os
+import time
 from argparse import ArgumentError
 
 import ase.db
@@ -106,7 +107,8 @@ class CallBacks:
         self.app = app
         self.submit_cls = SubmitTDDFTViaAndromeda(db)
         self.df = create_dataframe(db)
-
+        self.update_df_thead = threading.Thread(target=self.update_df)
+        self.update_df_thead.start()
     def init_callbacks(self):
 
         @self.app.callback(
@@ -169,3 +171,8 @@ class CallBacks:
                     dff = dff.loc[dff[col_name].str.startswith(filter_value)]
 
             return dff.to_dict('records')
+
+    def update_df(self):
+        while True:
+            self.df = create_dataframe(self.db)
+            time.sleep(360)
