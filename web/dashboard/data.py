@@ -10,7 +10,7 @@ from ase.db.table import Table
 def create_dataframe(db: ase.db.core.Database, selection=None, columns=None):
     """Create Pandas DataFrame from database """
     if columns is None:
-        columns = ['user','formula', 'name', 'osc_str','lambda_', 'ctime']
+        columns = ['formula', 'name', 'osc_str','lambda_', 'ctime']
     query = list(db.select(selection=selection))
     table = []
     for i in query:
