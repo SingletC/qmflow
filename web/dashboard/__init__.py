@@ -86,12 +86,7 @@ def init_dashboard(server):
                                         {'if': {'column_id': 'name'},
                                          'maxWidth': '100px'},
                                         ],
-                tooltip_data=[
-                    {
-                        column: {'value': str(value), 'type': 'text'}
-                        for column, value in row.items()
-                    } for row in df.to_dict('records')
-                ],
+
             ),
         ],
         id="dash-container",
