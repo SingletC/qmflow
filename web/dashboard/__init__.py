@@ -74,17 +74,20 @@ def init_dashboard(server):
                     for
                     i in df.columns],
                 data=df.to_dict("records"),
-                sort_action="native",
-                sort_mode="native",
+                sort_action='custom',
+                sort_mode='multi',
+                sort_by=[],
+                page_size=20,
+                page_current=0,
+                page_action='custom',
                 filter_action="custom",
                 filter_query='',
                 row_deletable=True,
-                page_size=300,
                 markdown_options={'link_target': '_blank', "html": True},
                 style_cell_conditional=[{'if': {'column_id': 'Structure'},
                                          'width': '400px'},
                                         {'if': {'column_id': 'name'},
-                                         'maxWidth': '100px'},
+                                         'maxWidth': '50px'},
                                         ],
 
             ),
@@ -119,7 +122,7 @@ class CallBacks:
             if smiles is None:
                 return 'Use Chemdraw copy as smiles for input'
             else:
-
+                smiles.replace("'",'')
                 return self.submit_cls.smiles_submit(smiles)
 
         # @self.app.callback(
@@ -135,8 +138,11 @@ class CallBacks:
 
         @self.app.callback(
             Output('database-table', "data"),
-            Input('database-table', "filter_query"))
-        def update_table(filter):
+            Input('database-table', "page_current"),
+            Input('database-table', "page_size"),
+            Input('database-table', "sort_by"),
+            Input('database-table', "filter_query"),)
+        def update_table(page_current, page_size, sort_by, filter):
             filtering_expressions = filter.split(' && ')
             dff = self.df.copy()
             for filter_part in filtering_expressions:
@@ -152,6 +158,7 @@ class CallBacks:
                     dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
                 elif operator == 'contains':
                     if col_name == 'name':
+                        filter_value = filter_value.replace("'",'')
                         match = Chem.MolFromSmiles(filter_value)
                         p = Chem.AdjustQueryParameters.NoAdjustments()
                         p.makeDummiesQueries = True
@@ -164,8 +171,18 @@ class CallBacks:
                     # this is a simplification of the front-end filtering logic,
                     # only works with complete fields in standard format
                     dff = dff.loc[dff[col_name].str.startswith(filter_value)]
-
-            return dff.to_dict('records')
+            if len(sort_by):
+                dff = dff.sort_values(
+                    [col['column_id'] for col in sort_by],
+                    ascending=[
+                        col['direction'] == 'asc'
+                        for col in sort_by
+                    ],
+                    inplace=False
+                )
+            page = page_current
+            size = page_size
+            return dff.iloc[page * size: (page + 1) * size].to_dict('records')
 
     def update_df(self):
         while True:
