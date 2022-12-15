@@ -26,16 +26,6 @@ def smiles_2_ase(smiles: str) -> Atoms:
     return ase_atoms
 
 
-def opt_pm7(atoms, steps=1000, method='PM7'):
-    try:
-        calc_opt = Gaussian(method=f'{method} NoSymmetry', label=f'tmp/{uuid.uuid4().hex[:6].upper()}')
-        opt = GaussianOptimizer(atoms, calc_opt)
-        opt.run(steps=steps)
-        return atoms
-    except Exception:
-        return None
-
-
 def read_td_dft(log='TD-DFT/0.log', t=0.1):
     with open(log, mode='r') as file:
         while True:
@@ -68,7 +58,7 @@ def get_linear_fit(df, func):
     return r
 
 
-def rdkit_2_base64png(mol_rdkit: Mol):
+def rdkit_2_base64png(mol_rdkit: Mol) -> str:
     img = Draw.MolToImage(mol_rdkit)
     buffer = io.BytesIO()
     img.save(buffer, format="png")  # Enregistre l'image dans le buffer

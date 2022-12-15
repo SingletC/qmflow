@@ -188,4 +188,4 @@ class CallBacks:
     def update_df(self):
         while True:
             self.df = create_dataframe(self.db)
-            time.sleep(10)
+            time.sleep(120 if os.getenv('DEBUG') is not None else 10)

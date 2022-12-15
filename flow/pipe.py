@@ -31,14 +31,14 @@ class Out:
 
 
 class Process:
-    def __init__(self, process_dict: ProcessDict):
+    def __init__(self, process_dict: ProcessDict,update=False):
         """
 
         Args:
             process_dict: next callable
         """
         self.process_dict: Dict[Callable, Union[str, None]] = process_dict
-
+        self.update = update
     def type_check(self, in_: Out):
         incoming_type = in_.type
         for func in self.process_dict:
@@ -56,7 +56,7 @@ class Process:
         """
         if type(in_) is dict:
             in_ = Out(in_)
-        results = {}
+        results = in_.results if self.update else {}
         for func, maps in self.process_dict.items():
             sig = inspect.signature(func)
             # TODO exception control
@@ -81,10 +81,20 @@ class Process:
 
 
 class Pipe:
-    def __init__(self, *args: Union[Process, ProcessDict]):
+    def __init__(self,
+                 *args: Union[Process, ProcessDict],
+                 update=False,):
+        """
+
+        Args:
+            update: force all process to be update type
+            *args:
+        """
         processes = list(args)
         self.processes = [process if type(process) is Process else Process(process) for process in processes]
-
+        if update:
+            for process in self.processes:
+                process.update = True
     def type_check(self):
         for i, process in enumerate(self.processes[::-1]):
             if not process.type_check(self.processes[i - 2].process(None, True)):

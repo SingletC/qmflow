@@ -6,14 +6,18 @@ from typing import Protocol
 import uuid as uuid
 
 import ase.db.core
+import pathlib
 from ase import Atoms
 from ase.calculators.gaussian import Gaussian
 from ase.io import read
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-from calc.utils import opt_pm7, read_td_dft, rdkit_2_base64png, smiles_2_ase
+from calc.utils import read_td_dft, rdkit_2_base64png, smiles_2_ase
 from ratelimit import limits, sleep_and_retry, RateLimitException
+
+from flow.operator import ASEOperator
+from flow.pipe import Pipe
 
 
 class SubmitJobProtocol(Protocol):
@@ -28,6 +32,33 @@ class SubmitJobProtocol(Protocol):
         ...
 
 
+class TDDFT_Ase(ASEOperator):
+
+    def setup(self, calc: Gaussian):
+        calc.parameters['chk'] = pathlib.Path(calc.label).name + '.chk'
+
+    def __repr__(self):
+        return self.__class__.__name__ + f'with calcs :{self.calcs}'
+
+
+def get_random_string() -> str:
+    return './files/' + uuid.uuid4().__str__()
+
+
+def read_td_dft_from_ase(atoms: Atoms) -> dict:
+    log = atoms.calc.label + '.log'
+    lambda_, osc_str = read_td_dft(log, t=0.05)
+    return {'lambda': lambda_,
+            'osc_str': osc_str}
+
+
+def update_db(db: ase.db.core.Database):
+    def inner(id: int, atoms: Atoms, uv: dict) -> None:
+        db.update(id=id, atoms=atoms, lambda_=uv['lambda'], osc_str=uv['osc_str'], data={'file_path': atoms.calc.label},stage=4)
+
+    return inner
+
+
 class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
 
     def __init__(self, db: ase.db.core.Database):
@@ -39,40 +70,44 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
         try:
             functional = os.getenv('functional', 'M06')
             basis = os.getenv('basis', 'jun-cc-pvtz')
-            pm7_opt = Gaussian(method=f'opt PM3 IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'), output_type='N',
+            pm7_opt = Gaussian(method=f'opt PM7 IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'), output_type='N',
                                mem=os.getenv('GAUSSIAN_M'), )
+            pm3_opt = Gaussian(method=f'opt(maxstep=10) PM3 IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'),
+                               output_type='N',
+                               mem=os.getenv('GAUSSIAN_M'), )
+            pm3_opt.command = os.getenv('GAUSSIAN_CMD')
             pm7_opt.command = os.getenv('GAUSSIAN_CMD')
             opt_calc = Gaussian(method=f'opt {functional}/{basis} IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'),
                                 output_type='N',
                                 mem=os.getenv('GAUSSIAN_M'), )
             opt_calc.command = os.getenv('GAUSSIAN_CMD')
+            opt_calc2 = Gaussian(method=f'opt(maxstep=10) {functional}/{basis} IOP(2/9=2000) ',
+                                 nprocshared=os.getenv('GAUSSIAN_N'),
+                                 output_type='N',
+                                 mem=os.getenv('GAUSSIAN_M'), )
+            opt_calc2.command = os.getenv('GAUSSIAN_CMD')
             td_calc = Gaussian(
                 method=f'{functional}/{basis} IOP(2/9=2000) scrf=(smd,solvent=cyclohexane)  TD(nstates=30) ',
                 nprocshared=os.getenv('GAUSSIAN_N'),
-                output_type = 'N',
-                mem=os.getenv('GAUSSIAN_M'), )
+                output_type='N',
+                mem=os.getenv('GAUSSIAN_M'))
             td_calc.command = os.getenv('GAUSSIAN_CMD')
-            uuid_ = uuid.uuid4()
-            dir = f'calc/files/{uuid_}'
-            file = dir + '.log'
+            update_db_func = update_db(self.db)
             atoms = atoms.copy()
-            pm7_opt.label = dir
-            pm7_opt.calculate(atoms=atoms)
-            pm7 = read(file)
-            opt_calc.label = dir
-            opt_calc.calculate(atoms=pm7)
-            opt = read(file)
-            td_calc.label = dir
-            td_calc.calculate(atoms=opt)
-            # td_mol = read(file)
-            r = read_td_dft(file, t=0.05)
-            lambda_ = r[0]
-            osc_str = r[1]
-            self.db.update(id=id_, atoms=opt, lambda_=lambda_, osc_str=osc_str, data={'file_path': file})
-        except Exception as e:
-            print(f'error\n {e}\n with {dir}')
+            pipe = Pipe({get_random_string: 'label'},
+                        {ASEOperator(pm3_opt, pm7_opt).run: 'atoms'},
+                        {ASEOperator(opt_calc, opt_calc2).run: 'atoms'},
+                        {TDDFT_Ase(td_calc).run: 'atoms'},
+                        {read_td_dft_from_ase: 'uv'},
+                        {update_db_func: None},
+                        update=True,
+                        )
+            pipe.run({'id': id_,
+                      'atoms':atoms})
         except RateLimitException:
             raise RateLimitException
+        except Exception as e:
+            print(f'error\n {e}\n with {dir}')
         except FileNotFoundError:
             raise RateLimitException  # Make srun error retry
         return True

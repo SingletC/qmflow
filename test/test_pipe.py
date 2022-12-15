@@ -1,13 +1,11 @@
 import unittest
-
-from typing import Tuple, Callable
+import uuid
 
 import numpy as np
 from ase.calculators.gaussian import Gaussian
 
-from calc.operator import ASEOperator
-from calc.pipe import Out, Process, Pipe
-from ase.io import read
+from flow.operator import ASEOperator
+from flow.pipe import Out, Process, Pipe
 from ase.atoms import Atoms
 
 atoms = Atoms('C')
@@ -54,6 +52,10 @@ def get_ase_forces(atoms: Atoms) -> np.ndarray:
 
 def get_ase_energy(atoms: Atoms) -> float:
     return atoms.get_potential_energy()
+
+
+def get_random_string() -> str:
+    return './tmp/'+uuid.uuid4().__str__()
 
 
 class MyTestCase(unittest.TestCase):
@@ -180,17 +182,24 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(results, {'atoms': atoms})
 
     def test_ase_process(self):
-        calc = Gaussian(method='pm7 opt')
+        calc = Gaussian(method='pm7 opt',chk='td-chk')
         process1 = Process({ASEOperator(calc).run: 'atoms'})
         process2 = Process({get_ase_forces: 'force'})
         input_ = {'atoms': Atoms('C'),
                   'label': './tmp/gaussian.log'}
-        pipe = Pipe(process1, process2)
-        print(pipe.run(input_).results['force'])
+        # pipe = Pipe(process1, process2)
+        # print(pipe.run(input_).results['force'])
+        #
+        # # Direct use Dict to define Pipe
+        # pipe = Pipe({},
+        #             {ASEOperator(calc).run: 'atoms'},
+        #             {get_ase_forces: 'force', get_ase_energy: 'energy'})
+        # print(pipe.run(input_).results)
 
-        # Direct use Dict to define Pipe
-        pipe = Pipe({ASEOperator(calc).run: 'atoms'}, {get_ase_forces: 'force',
-                                                       get_ase_energy: 'energy'})
+        # Update type process
+        pipe = Pipe(Process({get_random_string: 'label'}, update=True),
+                    Process({ASEOperator(calc).run: 'atoms'}, update=True),
+                    Process({get_ase_forces: 'force', get_ase_energy: 'energy'}, update=True))
         print(pipe.run(input_).results)
 
 
