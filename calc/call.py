@@ -104,12 +104,12 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
                         )
             pipe.run({'id': id_,
                       'atoms':atoms})
-        except RateLimitException:
-            raise RateLimitException
         except Exception as e:
             print(f'error\n {e}\n with {dir}')
         except FileNotFoundError:
             raise RateLimitException  # Make srun error retry
+        except RateLimitException:
+            raise RateLimitException
         return True
 
     def thread_submit(self, atoms: Atoms, id_):
