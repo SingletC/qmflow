@@ -94,7 +94,7 @@ def init_dashboard(server):
         ],
         id="dash-container",
     )
-    callbacks = CallBacks(dash_app,db)
+    callbacks = CallBacks(dash_app, db)
     callbacks.init_callbacks()
     return dash_app.server
 
@@ -107,6 +107,7 @@ class CallBacks:
         self.df = create_dataframe(db)
         self.update_df_thead = threading.Thread(target=self.update_df)
         self.update_df_thead.start()
+
     def init_callbacks(self):
 
         @self.app.callback(
@@ -122,7 +123,7 @@ class CallBacks:
             if smiles is None:
                 return 'Use Chemdraw copy as smiles for input'
             else:
-                smiles.replace("'",'')
+                smiles.replace("'", '')
                 return self.submit_cls.smiles_submit(smiles)
 
         # @self.app.callback(
@@ -141,7 +142,7 @@ class CallBacks:
             Input('database-table', "page_current"),
             Input('database-table', "page_size"),
             Input('database-table', "sort_by"),
-            Input('database-table', "filter_query"),)
+            Input('database-table', "filter_query"), )
         def update_table(page_current, page_size, sort_by, filter):
             filtering_expressions = filter.split(' && ')
             dff = self.df.copy()
@@ -158,7 +159,7 @@ class CallBacks:
                     dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
                 elif operator == 'contains':
                     if col_name == 'name':
-                        filter_value = filter_value.replace("'",'')
+                        filter_value = filter_value.replace("'", '')
                         match = Chem.MolFromSmiles(filter_value)
                         p = Chem.AdjustQueryParameters.NoAdjustments()
                         p.makeDummiesQueries = True
@@ -187,4 +188,4 @@ class CallBacks:
     def update_df(self):
         while True:
             self.df = create_dataframe(self.db)
-            time.sleep(360)
+            time.sleep(10)

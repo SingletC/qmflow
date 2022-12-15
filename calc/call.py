@@ -39,15 +39,17 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
         try:
             functional = os.getenv('functional', 'M06')
             basis = os.getenv('basis', 'jun-cc-pvtz')
-            pm7_opt = Gaussian(method=f'opt PM3 IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'),
+            pm7_opt = Gaussian(method=f'opt PM3 IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'), output_type='N',
                                mem=os.getenv('GAUSSIAN_M'), )
             pm7_opt.command = os.getenv('GAUSSIAN_CMD')
             opt_calc = Gaussian(method=f'opt {functional}/{basis} IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'),
+                                output_type='N',
                                 mem=os.getenv('GAUSSIAN_M'), )
             opt_calc.command = os.getenv('GAUSSIAN_CMD')
             td_calc = Gaussian(
-                method=f'{functional}/{basis} IOP(2/9=2000) scrf=(smd,solvent=cyclohexane)  TD(nstates=30) '
-                , nprocshared=os.getenv('GAUSSIAN_N'),
+                method=f'{functional}/{basis} IOP(2/9=2000) scrf=(smd,solvent=cyclohexane)  TD(nstates=30) ',
+                nprocshared=os.getenv('GAUSSIAN_N'),
+                output_type = 'N',
                 mem=os.getenv('GAUSSIAN_M'), )
             td_calc.command = os.getenv('GAUSSIAN_CMD')
             uuid_ = uuid.uuid4()
@@ -72,14 +74,14 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
         except RateLimitException:
             raise RateLimitException
         except FileNotFoundError:
-            raise RateLimitException # Make srun error retry
+            raise RateLimitException  # Make srun error retry
         return True
 
     def thread_submit(self, atoms: Atoms, id_):
         t = threading.Thread(target=self.submit, args=[atoms, id_])
         t.start()
 
-    def smiles_submit(self,smiles):
+    def smiles_submit(self, smiles):
         if smiles is None:
             return 'Empty Smiles'
         try:
