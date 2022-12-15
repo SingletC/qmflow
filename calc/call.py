@@ -1,5 +1,6 @@
 import os
 import threading
+import traceback
 from argparse import ArgumentError
 from typing import Protocol
 
@@ -105,7 +106,8 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
             pipe.run({'id': id_,
                       'atoms':atoms})
         except Exception as e:
-            print(f'error\n {e}\n with {dir}')
+            print(f'error\n {e}\n ')
+            traceback.print_tb()
         except FileNotFoundError:
             raise RateLimitException  # Make srun error retry
         except RateLimitException:
