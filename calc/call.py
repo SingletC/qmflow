@@ -55,7 +55,8 @@ def read_td_dft_from_ase(atoms: Atoms) -> dict:
 
 def update_db(db: ase.db.core.Database):
     def inner(id: int, atoms: Atoms, uv: dict) -> None:
-        db.update(id=id, atoms=atoms, lambda_=uv['lambda'], osc_str=uv['osc_str'], data={'file_path': atoms.calc.label},stage=4)
+        db.update(id=id, atoms=atoms, lambda_=uv['lambda'], osc_str=uv['osc_str'], data={'file_path': atoms.calc.label},
+                  stage=4)
 
     return inner
 
@@ -96,7 +97,7 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
             update_db_func = update_db(self.db)
             atoms = atoms.copy()
             pipe = Pipe({get_random_string: 'label'},
-                        {ASEOperator(pm3_opt, pm7_opt).run: 'atoms'},
+                        {ASEOperator(pm7_opt, pm3_opt).run: 'atoms'},
                         {ASEOperator(opt_calc, opt_calc2).run: 'atoms'},
                         {TDDFT_Ase(td_calc).run: 'atoms'},
                         {read_td_dft_from_ase: 'uv'},
@@ -104,7 +105,7 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
                         update=True,
                         )
             pipe.run({'id': id_,
-                      'atoms':atoms})
+                      'atoms': atoms})
         except Exception as e:
             print(f'error\n {e}\n ')
             traceback.print_tb()
