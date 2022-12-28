@@ -74,7 +74,7 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
             basis = os.getenv('basis', 'jun-cc-pvtz')
             pm7_opt = Gaussian(method=f'opt PM7 IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'), output_type='N',
                                mem=os.getenv('GAUSSIAN_M'), )
-            pm3_opt = Gaussian(method=f'opt(maxstep=10) PM3 IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'),
+            pm3_opt = Gaussian(method=f'opt(maxstep=5 MaxCycles=999) PM3 IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'),
                                output_type='N',
                                mem=os.getenv('GAUSSIAN_M'), )
             pm3_opt.command = os.getenv('GAUSSIAN_CMD')
@@ -108,11 +108,11 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
                       'atoms': atoms})
         except RateLimitException:
             raise RateLimitException
-        except Exception as e:
-            print(f'error\n {e}\n ')
-            traceback.print_tb()
         except FileNotFoundError:
             raise RateLimitException  # Make srun error retry
+        except Exception as e:
+            print(f'error\n {e}\n ')
+            traceback.print_tb(e.__traceback__)
         return True
 
     def thread_submit(self, atoms: Atoms, id_):
