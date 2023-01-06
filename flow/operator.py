@@ -1,3 +1,5 @@
+import traceback
+
 import ase.calculators.calculator
 import pathlib
 from ase import Atoms
@@ -47,8 +49,9 @@ class ASEOperator:
                 atoms.calc = calc
                 self.post_process(atoms)
                 return atoms
-            except Exception:
-                i += 1
+            except Exception as e:
+                print(f'error\n {e}\n ')
+                traceback.print_tb(e.__traceback__)
         raise ProcessError(self.__repr__() + 'all fails')
 
     def __repr__(self):
