@@ -50,8 +50,7 @@ class ASEOperator:
                 self.post_process(atoms)
                 return atoms
             except Exception as e:
-                print(f'error\n {e}\n ')
-                traceback.print_tb(e.__traceback__)
+                i += 1
         raise ProcessError(self.__repr__() + 'all fails')
 
     def __repr__(self):
