@@ -132,13 +132,13 @@ def update_output(n_clicks, smiles):
     file = smiles_2_file(smiles)
     if file is None:
         return go.Figure()
-    chk = file + '.chk'
-    log = file + '.log'
+    chk = file + '.chk' if '.log' not in file else file
+    log = file + '.log' if '.log' not in file else file
     calc_line, calc_curve = gen_uv(log)
     figure = make_subplots(specs=[[{"secondary_y": True}]])
     figure.add_trace(go.Line(y=calc_line[1], x=calc_line.index, name='Fitted'))
     figure.add_trace(go.Line(y=calc_curve[1], x=calc_curve.index, name='Line', ), secondary_y=True, )
-    figure.update_xaxes(range=[200, 600])
+    # figure.update_xaxes(range=[200, 600])
     figure.update_layout(
         title=f"Exp. vs Calc UV ",
         xaxis_title="lambda (nm)",
