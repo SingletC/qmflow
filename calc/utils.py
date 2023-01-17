@@ -64,3 +64,17 @@ def rdkit_2_base64png(mol_rdkit: Mol) -> str:
     img.save(buffer, format="png")  # Enregistre l'image dans le buffer
     myimage = buffer.getvalue()
     return base64.b64encode(myimage).decode()
+def get_orbital_text(file):
+    text = ''
+    with open(file) as f:
+        lines = f.readlines()
+    flag = False
+    for i in lines:
+        if ' Excitation energies and oscillator strengths:\n' == i:
+            flag = True
+        if ' SavETr:  write IOETrn=' in i:
+            flag = False
+        if flag ==True:
+            text += i
+
+    return text
