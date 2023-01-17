@@ -78,3 +78,20 @@ def get_orbital_text(file):
             text += i
 
     return text
+
+def ase_atoms_to_dash_data(mol:Atoms):
+    atom = []
+    for i,ato in enumerate(mol):
+        xyz = ato.position
+        atom.append({
+                "serial": i,
+                "name": ato.symbol,
+                "elem": ato.symbol,
+                "positions": xyz,
+                "mass_magnitude": 1,
+                "residue_index": 1,
+                "residue_name": 'ALA',
+                "chain": 1,
+
+            })
+    return {'atoms':atom,'bonds':[]}

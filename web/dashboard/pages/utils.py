@@ -1,3 +1,8 @@
+import os
+import pathlib
+import shutil
+import subprocess
+
 operators = [['ge ', '>='],
              ['le ', '<='],
              ['lt ', '<'],
@@ -30,3 +35,21 @@ def split_filter_part(filter_part):
                 return name, operator_type[0].strip(), value
 
     return [None] * 3
+
+
+def gen_fchk(chk):
+    if not os.path.exists(chk + '.fchk'):
+        subprocess.run(["formchk", f'{chk}'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+def gen_cube(fchk,mo):
+    filename = f'{fchk}{mo}.cube'
+    if os.path.exists(filename):
+        return True
+    input_ = f'''5
+    4
+    {mo}
+    1 
+    2'''
+    input_ = bytes(input_, 'utf-8')
+    subprocess.run(["Multiwfn", f'{fchk}'], input=input_, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    shutil.move('MOvalue.cub',filename)
+    return True
