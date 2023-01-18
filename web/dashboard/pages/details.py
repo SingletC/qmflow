@@ -84,7 +84,7 @@ layout = html.Div(children=[
                 modelData=data_empty,
                 # orbital=
                 styles = create_mol3d_style(
-        data_empty['atoms'], visualization_type='sphere', color_element='atom'
+        data_empty['atoms'], visualization_type='stick', color_element='atom'
     )
             ),
 
@@ -135,7 +135,7 @@ def update_output(n_clicks, smiles):
     orbital = get_orbital_text(log)
     viewer_data  = ase_atoms_to_dash_data(read(log))
     style = create_mol3d_style(
-        viewer_data['atoms'], visualization_type='sphere', color_element='atom'
+        viewer_data['atoms'], visualization_type='stick', color_element='atom'
     )
     t = threading.Thread(target=gen_fchk, args=[chk])
     t.start()
@@ -179,7 +179,7 @@ def func(value,iso,smiles):
         orbital = f.read()
     return {'cube_file':  orbital,
                     'iso_val': 10**iso,
-                    'opacity': 0.9,
+                    'opacity': 1.0,
                     'positiveVolumetricColor': 'red',
                     'negativeVolumetricColor': 'blue',
                 }, f'current orbital is {mo}'

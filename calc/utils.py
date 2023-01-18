@@ -1,5 +1,6 @@
 import base64
 
+from ase import neighborlist
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw
 from ase.atoms import Atoms
@@ -78,6 +79,23 @@ def get_orbital_text(file):
             text += i
 
     return text
+def get_conn(mol: Atoms, cutoff=1):
+    """
+    get connectivity from molecule
+    Args:
+        mol:
+        cutoff:
+
+    Returns:
+
+    """
+    cutOff = neighborlist.natural_cutoffs(mol, mult=cutoff)
+    neighborList = neighborlist.NeighborList(cutOff, self_interaction=False, bothways=True, skin=0.0)
+    neighborList.update(mol)
+    return neighborList.get_connectivity_matrix()
+def generate_bonds(mol:Atoms):
+    conn = get_conn(mol,cutoff=1.2)
+    return conn.nonzero()
 
 def ase_atoms_to_dash_data(mol:Atoms):
     atom = []
@@ -94,4 +112,8 @@ def ase_atoms_to_dash_data(mol:Atoms):
                 "chain": 1,
 
             })
-    return {'atoms':atom,'bonds':[]}
+    if mol:
+        bonds = generate_bonds(mol)
+    else:
+        bonds = [[],[]]
+    return {'atoms':atom,'bonds':[  {"atom1_index": i,"atom2_index": j,"bond_order": 1} for i,j in zip(bonds[0],bonds[1])]}
