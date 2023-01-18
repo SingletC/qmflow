@@ -38,7 +38,7 @@ def split_filter_part(filter_part):
 
 
 def gen_fchk(chk):
-    if not os.path.exists(chk + '.fchk'):
+    if not os.path.exists(chk.replace('.chk','.fchk')):
         subprocess.run(["formchk", f'{chk}'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 def gen_cube(fchk,mo):
     filename = f'{fchk}{mo}.cube'

@@ -118,7 +118,7 @@ def update_output(n_clicks, smiles):
     file = smiles_2_file(smiles)
     if file is None:
         return go.Figure() ,'', True , None , None
-    chk = file + '.chk' if '.log' not in file else file
+    chk = file + '.chk' if '.log' not in file else file.replace('.log','.chk')
     log = file + '.log' if '.log' not in file else file
     calc_line, calc_curve = gen_uv(log)
     figure = make_subplots(specs=[[{"secondary_y": True}]])
