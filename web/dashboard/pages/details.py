@@ -77,6 +77,7 @@ layout = html.Div(children=[
         marks={i: 'iso-surface value= {}'.format(10 ** i) for i in range(-3,-1)},
         value=-2,
     ),
+        dcc.Textarea(id='orbital_number',value='',style={'width': '10%', 'height': 50,'display': 'inline-block'},),
         dash_bio.Molecule3dViewer(
                 style = { 'height': 500, 'width': '80%'},
                 id='dashbio-default-molecule3d',
@@ -155,6 +156,7 @@ def func(n_clicks,smiles):
 
 @dash.callback(
     Output("dashbio-default-molecule3d", "orbital"),
+    Output("orbital_number", "value"),
     Input("slider_mo", "value"),
     Input("slider_iso", "value"),
     State('input-on-submit', 'value'),
@@ -162,10 +164,10 @@ def func(n_clicks,smiles):
 )
 def func(value,iso,smiles):
     if not smiles:
-        return None
+        return None , ''
     file = smiles_2_file(smiles)
     if file is None:
-        return None
+        return None, ''
     log = file + '.log' if '.log' not in file else file
     fchk = log.replace('.log','.fchk')
 
@@ -180,4 +182,4 @@ def func(value,iso,smiles):
                     'opacity': 0.9,
                     'positiveVolumetricColor': 'red',
                     'negativeVolumetricColor': 'blue',
-                }
+                }, f'current orbital is {mo}'
