@@ -180,7 +180,7 @@ def func(value,iso,smiles):
         orbital = f.read()
     return {'cube_file':  orbital,
                     'iso_val': 10**iso,
-                    'opacity': 1.0,
+                    'opacity': 0.95,
                     'positiveVolumetricColor': 'red',
                     'negativeVolumetricColor': 'blue',
                 }, f'current orbital is {mo}'
