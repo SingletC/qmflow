@@ -174,7 +174,7 @@ def func(value,iso,smiles):
 
     ase_mol = read(log)
     homo = int(sum(ase_mol.get_atomic_numbers())/2)
-    mo = homo + value
+    mo = homo + value + 1 # NOTE we define HOMO is -1
     gen_cube(fchk,mo)
     with open(f'{fchk}{mo}.cube',encoding='utf-8') as f:
         orbital = f.read()
