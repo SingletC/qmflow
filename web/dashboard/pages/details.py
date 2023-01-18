@@ -77,7 +77,8 @@ layout = html.Div(children=[
         marks={i: 'iso-surface value= {}'.format(10 ** i) for i in range(-3,-1)},
         value=-2,
     ),
-        dcc.Textarea(id='orbital_number',value='',style={'width': '10%', 'height': 50,'display': 'inline-block'},),
+        html.Div(id='orbital_number'),
+        html.Br(),
         dash_bio.Molecule3dViewer(
                 style = { 'height': 500, 'width': '80%'},
                 id='dashbio-default-molecule3d',
@@ -156,7 +157,7 @@ def func(n_clicks,smiles):
 
 @dash.callback(
     Output("dashbio-default-molecule3d", "orbital"),
-    Output("orbital_number", "value"),
+    Output("orbital_number", "children"),
     Input("slider_mo", "value"),
     Input("slider_iso", "value"),
     State('input-on-submit', 'value'),
