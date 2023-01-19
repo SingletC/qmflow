@@ -136,6 +136,6 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
         if id_ is not None:
             self.db.update(atoms=ase_atom, id=id_, data={'img': img})
             self.thread_submit(ase_atom, id_)
-            return f'Smiles {smiles} has been submitted'
+            return f'Smiles {smiles} submitted'
         else:
-            return f'Structure {smiles} submitted early'
+            return f'Structure {smiles} submitted earlier'
