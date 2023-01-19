@@ -25,5 +25,5 @@ def create_dataframe(db: ase.db.core.Database, selection=None, columns=None):
     columns.append('Structure')
     df = pd.DataFrame(table,columns=columns)
 
-    df['ctime'] = df['ctime'].apply(lambda x: datetime.fromtimestamp(x * ase.db.core.YEAR + ase.db.core.T2000).strftime('%c'))
+    df['ctime'] = df['ctime'].apply(lambda x: datetime.fromtimestamp(x * ase.db.core.YEAR + ase.db.core.T2000))#.strftime('%c'))
     return df

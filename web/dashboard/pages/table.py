@@ -83,6 +83,7 @@ class CallBacks:
                 )
             page = page_current
             size = page_size
+            dff.ctime = dff.ctime.apply(lambda x: x.ctime())
             return dff.iloc[page * size: (page + 1) * size].to_dict('records')
 
         @self.app.callback(
@@ -101,7 +102,7 @@ app = dash.register_page(__name__,path='/')
 db = ase.db.connect(os.getenv('DATABASE_DIR'))
 # Load DataFrame
 df = create_dataframe(db)
-
+df.ctime = df.ctime.apply(lambda x: x.ctime())
 # Custom HTML layout
 index_string = html_layout
 
