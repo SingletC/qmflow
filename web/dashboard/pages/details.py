@@ -28,7 +28,7 @@ from calc.utils import gen_uv, get_orbital_text, ase_atoms_to_dash_data
 from web.dashboard.pages.utils import gen_fchk, gen_cube, gen_hole_electron_cube
 
 Molecular_Orbital = 'Molecular Orbital'
-HoleElectronDistribution='Hole&Electron Distribution'
+TransitionDensity= 'Transition Density of Excitation State'
 def smiles_2_ase(smiles: str) -> Atoms:
     a = Chem.MolFromSmiles(smiles)
     a = Chem.AddHs(a)
@@ -69,7 +69,7 @@ layout = html.Div(children=[
     dcc.Graph(id='UV',style={'width': '40%', 'height': 400,'display': 'inline-block'}),
     dcc.Textarea(id='orbital-info',value='',style={'width': '40%', 'height': 400,'display': 'inline-block'},),
     html.Div([
-        dcc.Dropdown(id='drop-iso-type',options=[Molecular_Orbital,HoleElectronDistribution,]),
+        dcc.Dropdown(id='drop-iso-type', options=[Molecular_Orbital, TransitionDensity, ]),
         dcc.Dropdown(id='drop-iso-value'),
         dcc.Slider(-3, -1, 0.1,
         id='slider_iso',
@@ -185,7 +185,7 @@ def func(iso_type,value,iso,smiles):
                         'positiveVolumetricColor': 'red',
                         'negativeVolumetricColor': 'blue',
                     }, f'current orbital is {mo}'
-    if iso_type == HoleElectronDistribution:
+    if iso_type == TransitionDensity:
         gen_hole_electron_cube(fchk,value)
         with open(f'{fchk}{value}EH.cube',encoding='utf-8') as f:
             cube = f.read()
@@ -205,5 +205,5 @@ def func(iso_type,value,iso,smiles):
 def func(value):
     if value == Molecular_Orbital:
         return [ {"label": opt, "value": value} for value,opt in sorted(mo_marks.items())]
-    if value == HoleElectronDistribution:
+    if value == TransitionDensity:
         return [ {"label": f'Excited State {i}' , "value": i } for i in range(1,30)]
