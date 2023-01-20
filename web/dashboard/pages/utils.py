@@ -53,3 +53,21 @@ def gen_cube(fchk,mo):
     subprocess.run(["Multiwfn", f'{fchk}'], input=input_, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     shutil.move('MOvalue.cub',filename)
     return True
+
+def gen_hole_electron_cube(fchk,value):
+    filename = f'{fchk}{value}EH.cube'
+    if os.path.exists(filename):
+        return True
+    input_ = f'''18
+    1
+    {fchk.replace('.fchk','.log')}
+    {value}
+    1 
+    1
+    1
+    13
+    '''
+    input_ = bytes(input_, 'utf-8')
+    subprocess.run(["Multiwfn", f'{fchk}'], input=input_, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    shutil.move('transdens.cub',filename)
+    return True

@@ -25,9 +25,10 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 
 from calc.utils import gen_uv, get_orbital_text, ase_atoms_to_dash_data
-from web.dashboard.pages.utils import gen_fchk, gen_cube
+from web.dashboard.pages.utils import gen_fchk, gen_cube, gen_hole_electron_cube
 
-
+Molecular_Orbital = 'Molecular Orbital'
+HoleElectronDistribution='Hole&Electron Distribution'
 def smiles_2_ase(smiles: str) -> Atoms:
     a = Chem.MolFromSmiles(smiles)
     a = Chem.AddHs(a)
@@ -68,10 +69,8 @@ layout = html.Div(children=[
     dcc.Graph(id='UV',style={'width': '40%', 'height': 400,'display': 'inline-block'}),
     dcc.Textarea(id='orbital-info',value='',style={'width': '40%', 'height': 400,'display': 'inline-block'},),
     html.Div([
-        dcc.Slider(min=-5, max = 5, step = None,
-                   value=0,
-                   id='slider_mo',
-                    marks=mo_marks),
+        dcc.Dropdown(id='drop-iso-type',options=[Molecular_Orbital,HoleElectronDistribution,]),
+        dcc.Dropdown(id='drop-iso-value'),
         dcc.Slider(-3, -1, 0.1,
         id='slider_iso',
         marks={i: 'iso-surface value= {}'.format(10 ** i) for i in range(-3,-1)},
@@ -158,12 +157,13 @@ def func(n_clicks,smiles):
 @dash.callback(
     Output("dashbio-default-molecule3d", "orbital"),
     Output("orbital_number", "children"),
-    Input("slider_mo", "value"),
+    Input("drop-iso-type", "value"),
+    Input("drop-iso-value", "value"),
     Input("slider_iso", "value"),
     State('input-on-submit', 'value'),
     prevent_initial_call=True,
 )
-def func(value,iso,smiles):
+def func(iso_type,value,iso,smiles):
     if not smiles:
         return None , ''
     file = smiles_2_file(smiles)
@@ -172,15 +172,38 @@ def func(value,iso,smiles):
     log = file + '.log' if '.log' not in file else file
     fchk = log.replace('.log','.fchk')
 
-    ase_mol = read(log)
-    homo = int(sum(ase_mol.get_atomic_numbers())/2)
-    mo = homo + value + 1 # NOTE we define HOMO is -1
-    gen_cube(fchk,mo)
-    with open(f'{fchk}{mo}.cube',encoding='utf-8') as f:
-        orbital = f.read()
-    return {'cube_file':  orbital,
-                    'iso_val': 10**iso,
-                    'opacity': 0.95,
-                    'positiveVolumetricColor': 'red',
-                    'negativeVolumetricColor': 'blue',
-                }, f'current orbital is {mo}'
+    if iso_type == Molecular_Orbital:
+        ase_mol = read(log)
+        homo = int(sum(ase_mol.get_atomic_numbers()) / 2)
+        mo = homo + value + 1  # NOTE we define HOMO is -1
+        gen_cube(fchk,mo)
+        with open(f'{fchk}{mo}.cube',encoding='utf-8') as f:
+            orbital = f.read()
+        return {'cube_file':  orbital,
+                        'iso_val': 10**iso,
+                        'opacity': 0.95,
+                        'positiveVolumetricColor': 'red',
+                        'negativeVolumetricColor': 'blue',
+                    }, f'current orbital is {mo}'
+    if iso_type == HoleElectronDistribution:
+        gen_hole_electron_cube(fchk,value)
+        with open(f'{fchk}{value}EH.cube',encoding='utf-8') as f:
+            cube = f.read()
+        return {'cube_file':  cube,
+                        'iso_val': 10**iso,
+                        'opacity': 0.95,
+                        'positiveVolumetricColor': 'red',
+                        'negativeVolumetricColor': 'blue',
+                    }, f'Showing transition density of excitation state {value}'
+
+
+@dash.callback(
+    Output("drop-iso-value", "options"),
+    Input("drop-iso-type", "value"),
+    prevent_initial_call=True,
+)
+def func(value):
+    if value == Molecular_Orbital:
+        return [ {"label": opt, "value": value} for value,opt in sorted(mo_marks.items())]
+    if value == HoleElectronDistribution:
+        return [ {"label": f'Excited State {i}' , "value": i } for i in range(1,30)]
