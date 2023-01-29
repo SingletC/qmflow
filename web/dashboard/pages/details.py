@@ -197,7 +197,7 @@ def func(iso_type,value,iso,smiles):
                         'opacity': 0.95,
                         'positiveVolumetricColor': 'red',
                         'negativeVolumetricColor': 'blue',
-                    }, f'Showing transition density of excitation state {value}'
+                    }, f'Showing transition density of excitation state {value}             red(>0) blue(<0)'
 
 
 @dash.callback(
