@@ -63,6 +63,8 @@ layout = html.Div(children=[
         dcc.Input(id='input-on-submit', type='text'),
     html.Button('check result', id='submit-val', n_clicks=0),
     html.Div([html.Button("Download log file", id="download_btn",disabled=True),
+                html.Br(),
+                html.A(id='downloadfhck', children='Download Gaussian formatted chk file'),
                 dcc.Download(id="download")],),
     ]),
 	html.Br(),
@@ -107,16 +109,17 @@ def smiles_2_file(smiles):
     Output("download_btn", "disabled"),
     Output("dashbio-default-molecule3d", "modelData"),
     Output("dashbio-default-molecule3d", "styles"),
+    Output("downloadfhck", "href"),
     [Input('submit-val', 'n_clicks'),
     State('input-on-submit', 'value'),],
     prevent_initial_call=True,
 )
 def update_output(n_clicks, smiles):
     if not smiles:
-        return go.Figure() , '' , True , None , None
+        return go.Figure() , '' , True , None , None , '.'
     file = smiles_2_file(smiles)
     if file is None:
-        return go.Figure() ,'', True , None , None
+        return go.Figure() ,'', True , None , None , '.'
     chk = file + '.chk' if '.log' not in file else file.replace('.log','.chk')
     log = file + '.log' if '.log' not in file else file
     calc_line, calc_curve = gen_uv(log)
@@ -139,7 +142,7 @@ def update_output(n_clicks, smiles):
     )
     t = threading.Thread(target=gen_fchk, args=[chk])
     t.start()
-    return figure , orbital , False , viewer_data ,style
+    return figure , orbital , False , viewer_data ,style , '../downloads/'+chk.replace('.chk','.fchk')
 
 @dash.callback(
     Output("download", "data"),
