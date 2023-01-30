@@ -96,7 +96,9 @@ db = ase.db.connect(os.getenv('DATABASE_DIR'))
 def smiles_2_file(smiles):
     if smiles is None:
         return None
-    r = db.select(name=smiles)
+    rdkit_mol = Chem.MolFromSmiles(smiles)
+    canonical_smiles = Chem.MolToSmiles(rdkit_mol)
+    r = db.select(name=canonical_smiles)
     r = list(r)
     if len(r) ==1:
         return r[0].data.file_path
