@@ -78,7 +78,7 @@ layout = html.Div(children=[
         marks={i: 'iso-surface value= {}'.format(10 ** i) for i in range(-3,-1)},
         value=-2,
     ),
-        html.Div(id='orbital_number'),
+        dcc.Markdown(id='orbital_number'),
         html.Br(),
         dash_bio.Molecule3dViewer(
                 style = { 'height': 500, 'width': '80%'},
@@ -191,7 +191,7 @@ def func(iso_type,value,iso,smiles):
                         'negativeVolumetricColor': 'blue',
                     }, f'current orbital is {mo}'
     if iso_type == TransitionDensity:
-        gen_hole_electron_cube(fchk,value)
+        txt = gen_hole_electron_cube(fchk,value)
         with open(f'{fchk}{value}EH.cube',encoding='utf-8') as f:
             cube = f.read()
         return {'cube_file':  cube,
@@ -199,7 +199,7 @@ def func(iso_type,value,iso,smiles):
                         'opacity': 0.95,
                         'positiveVolumetricColor': 'red',
                         'negativeVolumetricColor': 'blue',
-                    }, f'Showing transition density of excitation state {value}             red(>0) blue(<0)'
+                    }, f'Showing transition density of excitation state {value}             red(>0) blue(<0)\n'+ txt.replace('\n','\n\n')
 
 
 @dash.callback(
