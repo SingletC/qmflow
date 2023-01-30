@@ -67,7 +67,7 @@ def gen_hole_electron_cube(fchk,value):
     {fchk.replace('.fchk','.log')}
     {value}
     1 
-    3
+    2
     1
     13
     '''
