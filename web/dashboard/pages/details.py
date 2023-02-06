@@ -25,10 +25,11 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 
 from calc.utils import gen_uv, get_orbital_text, ase_atoms_to_dash_data
-from web.dashboard.pages.utils import gen_fchk, gen_cube, gen_hole_electron_cube
+from web.dashboard.pages.utils import gen_fchk, gen_cube, gen_hole_electron_cube, gen_chargeDiff
 
 Molecular_Orbital = 'Molecular Orbital'
 TransitionDensity= 'Transition Density of Excitation State'
+ChargeDiff = 'Charge Density Difference'
 def smiles_2_ase(smiles: str) -> Atoms:
     a = Chem.MolFromSmiles(smiles)
     a = Chem.AddHs(a)
@@ -71,7 +72,7 @@ layout = html.Div(children=[
     dcc.Graph(id='UV',style={'width': '40%', 'height': 400,'display': 'inline-block'}),
     dcc.Textarea(id='orbital-info',value='',style={'width': '40%', 'height': 400,'display': 'inline-block'},),
     html.Div([
-        dcc.Dropdown(id='drop-iso-type', options=[Molecular_Orbital, TransitionDensity, ]),
+        dcc.Dropdown(id='drop-iso-type', options=[Molecular_Orbital, TransitionDensity, ChargeDiff]),
         dcc.Dropdown(id='drop-iso-value'),
         dcc.Slider(-3, -1, 0.1,
         id='slider_iso',
@@ -201,6 +202,18 @@ def func(iso_type,value,iso,smiles):
                         'negativeVolumetricColor': 'blue',
                     }, f'Showing transition density of excitation state {value}             red(>0) blue(<0)\n'+ txt.replace('\n','\n\n')
 
+    if iso_type == ChargeDiff:
+        txt = gen_chargeDiff(fchk, value)
+        with open(f'{fchk}{value}CDD.cube', encoding='utf-8') as f:
+            cube = f.read()
+        return {'cube_file': cube,
+                'iso_val': 10 ** iso,
+                'opacity': 0.95,
+                'positiveVolumetricColor': 'red',
+                'negativeVolumetricColor': 'blue',
+                }, f'Showing charge density difference of excitation state {value}             red(>0) blue(<0)\n' + txt.replace(
+            '\n', '\n\n')
+
 
 @dash.callback(
     Output("drop-iso-value", "options"),
@@ -211,4 +224,6 @@ def func(value):
     if value == Molecular_Orbital:
         return [ {"label": opt, "value": value} for value,opt in sorted(mo_marks.items())]
     if value == TransitionDensity:
+        return [ {"label": f'Excited State {i}' , "value": i } for i in range(1,30)]
+    if value == ChargeDiff:
         return [ {"label": f'Excited State {i}' , "value": i } for i in range(1,30)]

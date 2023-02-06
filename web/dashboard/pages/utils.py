@@ -83,3 +83,32 @@ def gen_hole_electron_cube(fchk,value):
         text_file.write(out)
     shutil.move('transdens.cub',filename)
     return out
+def gen_chargeDiff(fchk,value):
+    keys = ['Sm index','Sr index','Ghost-hunter index']
+    if not value:
+        return ''
+    filename = f'{fchk}{value}CDD.cube'
+    if os.path.exists(filename):
+        with open(filename + '.txt', "r") as text_file:
+            return text_file.read()
+    input_ = f'''18
+    1
+    {fchk.replace('.fchk','.log')}
+    {value}
+    1 
+    2
+    1
+    15
+    '''
+    # input_ = bytes(input_, 'utf-8')
+    r = subprocess.run(["Multiwfn", f'{fchk}'], input=input_, capture_output=True, text= True)
+    out ='\n'
+    for i in r.stdout.split('\n'):
+        for key in keys:
+            if key in i:
+                out += i
+                out +='\n'
+    with open(filename + '.txt', "w") as text_file:
+        text_file.write(out)
+    shutil.move('CDD.cub',filename)
+    return out
