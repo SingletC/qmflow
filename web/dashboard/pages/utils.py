@@ -112,3 +112,26 @@ def gen_chargeDiff(fchk,value):
         text_file.write(out)
     shutil.move('CDD.cub',filename)
     return out
+
+def gen_NTO(fchk,value):
+    filename = f'{fchk}{value}NTO.mwfn'
+    input_ = f'''18
+    6
+    {fchk.replace('.fchk','.log')}
+    {value}
+    3
+    {filename}
+    '''
+    # input_ = bytes(input_, 'utf-8')
+    subprocess.run(["Multiwfn", f'{fchk}'], input=input_, capture_output=True, text= True)
+
+    input_ = f'''0
+        '''
+    r = subprocess.run(["Multiwfn", f'{filename}'], input=input_, capture_output=True, text=True)
+    orbitals = {}
+    for i in r.stdout.split('\n'):
+        i = i.replace(' Note: ', '     ')
+        if ' Orbital    ' in i:
+            orbitals.update({i.split()[1]:i.split()[5]})
+
+    return orbitals

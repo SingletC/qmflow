@@ -25,10 +25,11 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 
 from calc.utils import gen_uv, get_orbital_text, ase_atoms_to_dash_data
-from web.dashboard.pages.utils import gen_fchk, gen_cube, gen_hole_electron_cube, gen_chargeDiff
+from web.dashboard.pages.utils import gen_fchk, gen_cube, gen_hole_electron_cube, gen_chargeDiff, gen_NTO
 
 Molecular_Orbital = 'Molecular Orbital'
-TransitionDensity= 'Transition Density of Excitation State'
+# TransitionDensity= 'Transition Density of Excitation State'
+Natural_Transition_Orbital = 'Natural Transition Orbital'
 ChargeDiff = 'Charge Density Difference'
 def smiles_2_ase(smiles: str) -> Atoms:
     a = Chem.MolFromSmiles(smiles)
@@ -72,8 +73,9 @@ layout = html.Div(children=[
     dcc.Graph(id='UV',style={'width': '40%', 'height': 400,'display': 'inline-block'}),
     dcc.Textarea(id='orbital-info',value='',style={'width': '40%', 'height': 400,'display': 'inline-block'},),
     html.Div([
-        dcc.Dropdown(id='drop-iso-type', options=[Molecular_Orbital, TransitionDensity, ChargeDiff]),
+        dcc.Dropdown(id='drop-iso-type', options=[Molecular_Orbital, ChargeDiff,Natural_Transition_Orbital]),
         dcc.Dropdown(id='drop-iso-value'),
+        dcc.Dropdown(id='drop-iso-type2'),
         dcc.Slider(-3, -1, 0.1,
         id='slider_iso',
         marks={i: 'iso-surface value= {}'.format(10 ** i) for i in range(-3,-1)},
@@ -163,18 +165,21 @@ def func(n_clicks,smiles):
 @dash.callback(
     Output("dashbio-default-molecule3d", "orbital"),
     Output("orbital_number", "children"),
+    Output("drop-iso-type2", "options"),
     Input("drop-iso-type", "value"),
     Input("drop-iso-value", "value"),
+    Input("drop-iso-type2", "value"),
     Input("slider_iso", "value"),
+    Input("drop-iso-type2", "options"),
     State('input-on-submit', 'value'),
     prevent_initial_call=True,
 )
-def func(iso_type,value,iso,smiles):
-    if not smiles:
-        return None , ''
+def func(iso_type,value,type2,iso,type2_options,smiles):
+    if not smiles or not value:
+        return {} , '' , ['0']
     file = smiles_2_file(smiles)
     if file is None:
-        return None, ''
+        return {}, '' , ['0']
     log = file + '.log' if '.log' not in file else file
     fchk = log.replace('.log','.fchk')
 
@@ -190,17 +195,17 @@ def func(iso_type,value,iso,smiles):
                         'opacity': 0.95,
                         'positiveVolumetricColor': 'red',
                         'negativeVolumetricColor': 'blue',
-                    }, f'current orbital is {mo}'
-    if iso_type == TransitionDensity:
-        txt = gen_hole_electron_cube(fchk,value)
-        with open(f'{fchk}{value}EH.cube',encoding='utf-8') as f:
-            cube = f.read()
-        return {'cube_file':  cube,
-                        'iso_val': 10**iso,
-                        'opacity': 0.95,
-                        'positiveVolumetricColor': 'red',
-                        'negativeVolumetricColor': 'blue',
-                    }, f'Showing transition density of excitation state {value}             red(>0) blue(<0)\n'+ txt.replace('\n','\n\n')
+                    }, f'current orbital is {mo}' , []
+    # if iso_type == TransitionDensity:
+    #     txt = gen_hole_electron_cube(fchk,value)
+    #     with open(f'{fchk}{value}EH.cube',encoding='utf-8') as f:
+    #         cube = f.read()
+    #     return {'cube_file':  cube,
+    #                     'iso_val': 10**iso,
+    #                     'opacity': 0.95,
+    #                     'positiveVolumetricColor': 'red',
+    #                     'negativeVolumetricColor': 'blue',
+    #                 }, f'Showing transition density of excitation state {value}             red(>0) blue(<0)\n'+ txt.replace('\n','\n\n')
 
     if iso_type == ChargeDiff:
         txt = gen_chargeDiff(fchk, value)
@@ -211,8 +216,23 @@ def func(iso_type,value,iso,smiles):
                 'opacity': 0.95,
                 'positiveVolumetricColor': 'red',
                 'negativeVolumetricColor': 'blue',
-                }, f'Showing charge density difference of excitation state {value}             red(>0) blue(<0)\n' + txt.replace(
-            '\n', '\n\n')
+                }, f'Showing charge density difference of excitation state {value}  \n' \
+                   f'electron density red(increase) blue(decrease)\n' + txt.replace(
+            '\n', '\n\n') , []
+    if iso_type == Natural_Transition_Orbital:
+        if type2 == None:
+            dict_ = gen_NTO(fchk, value)
+            return {}, '' ,  [ {"label": f'MO {i[0]} with {float(i[1])*100:0.2f}% contribution' , "value": i[0] } for i in dict_.items()]
+        filename = f'{fchk}{value}NTO.mwfn'
+        gen_cube(filename, type2)
+        with open(f'{filename}{type2}.cube', encoding='utf-8') as f:
+            orbital = f.read()
+        return {'cube_file': orbital,
+                'iso_val': 10 ** iso,
+                'opacity': 0.95,
+                'positiveVolumetricColor': 'red',
+                'negativeVolumetricColor': 'blue',
+                }, f'current orbital is NTO: excitation state {value} Orbital {type2}', type2_options if type2_options else ['0']
 
 
 @dash.callback(
@@ -223,7 +243,7 @@ def func(iso_type,value,iso,smiles):
 def func(value):
     if value == Molecular_Orbital:
         return [ {"label": opt, "value": value} for value,opt in sorted(mo_marks.items())]
-    if value == TransitionDensity:
+    if value == Natural_Transition_Orbital:
         return [ {"label": f'Excited State {i}' , "value": i } for i in range(1,30)]
     if value == ChargeDiff:
         return [ {"label": f'Excited State {i}' , "value": i } for i in range(1,30)]
