@@ -130,8 +130,8 @@ def gen_NTO(fchk,value):
     r = subprocess.run(["Multiwfn", f'{filename}'], input=input_, capture_output=True, text=True)
     orbitals = {}
     for i in r.stdout.split('\n'):
-        i = i.replace(' Note: ', '     ')
-        if ' Orbital    ' in i:
+        i = i.replace('Note:', '     ')
+        if i[7:14] == 'Orbital':
             orbitals.update({i.split()[1]:i.split()[5]})
 
     return orbitals
