@@ -170,16 +170,15 @@ def func(n_clicks,smiles):
     Input("drop-iso-value", "value"),
     Input("drop-iso-type2", "value"),
     Input("slider_iso", "value"),
-    Input("drop-iso-type2", "options"),
     State('input-on-submit', 'value'),
     prevent_initial_call=True,
 )
-def func(iso_type,value,type2,iso,type2_options,smiles):
-    if not smiles or not value:
-        return {} , '' , ['0']
+def func(iso_type,value,type2,iso,smiles):
+    if not smiles or  value is None:
+        return {} , '' , []
     file = smiles_2_file(smiles)
     if file is None:
-        return {}, '' , ['0']
+        return {}, '' , []
     log = file + '.log' if '.log' not in file else file
     fchk = log.replace('.log','.fchk')
 
@@ -220,9 +219,10 @@ def func(iso_type,value,type2,iso,type2_options,smiles):
                    f'electron density red(increase) blue(decrease)\n' + txt.replace(
             '\n', '\n\n') , []
     if iso_type == Natural_Transition_Orbital:
+        dict_ = gen_NTO(fchk, value)
+        opts = [ {"label": f'MO {i[0]} with {float(i[1])*100:0.2f}% contribution' , "value": i[0] } for i in dict_.items()]
         if type2 == None:
-            dict_ = gen_NTO(fchk, value)
-            return {}, '' ,  [ {"label": f'MO {i[0]} with {float(i[1])*100:0.2f}% contribution' , "value": i[0] } for i in dict_.items()]
+            return {}, '' ,  opts
         filename = f'{fchk}{value}NTO.mwfn'
         gen_cube(filename, type2)
         with open(f'{filename}{type2}.cube', encoding='utf-8') as f:
@@ -232,7 +232,7 @@ def func(iso_type,value,type2,iso,type2_options,smiles):
                 'opacity': 0.95,
                 'positiveVolumetricColor': 'red',
                 'negativeVolumetricColor': 'blue',
-                }, f'current orbital is NTO: excitation state {value} Orbital {type2}', type2_options if type2_options else ['0']
+                }, f'current orbital is NTO: excitation state {value} Orbital {type2}', opts
 
 
 @dash.callback(
