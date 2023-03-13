@@ -52,6 +52,8 @@ class CallBacks:
                     if 'scontains' in filter_part:
                         operator = 'contains'
                         filter_value = filter_part.split(' ')[-1]
+                    else:
+                        col_name, operator, filter_value = split_filter_part(filter_part)
                 else:
                     col_name, operator, filter_value = split_filter_part(filter_part)
 
