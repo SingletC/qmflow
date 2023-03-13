@@ -57,7 +57,7 @@ class CallBacks:
                 else:
                     col_name, operator, filter_value = split_filter_part(filter_part)
 
-                if col_name != 'name':
+                if col_name and col_name != 'name':
                     dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
                 else:
                     if operator == 'contains':
