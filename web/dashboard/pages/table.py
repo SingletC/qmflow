@@ -54,11 +54,10 @@ class CallBacks:
                 else:
                     col_name, operator, filter_value = split_filter_part(filter_part)
 
-                if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
-                    # these operators match pandas series operator method names
+                if col_name != 'name':
                     dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
-                elif operator == 'contains':
-                    if col_name == 'name':
+                else:
+                    if operator == 'contains':
                         filter_value = filter_value.replace("'", '')
                         match = Chem.MolFromSmiles(filter_value)
                         p = Chem.AdjustQueryParameters.NoAdjustments()
@@ -66,12 +65,12 @@ class CallBacks:
                         match = Chem.AdjustQueryProperties(match, p)
                         dff = dff[dff['name'].apply(lambda x: MolFromSmiles(x).HasSubstructMatch(match))]
 
-                    else:
-                        dff = dff.loc[dff[col_name].str.contains(filter_value)]
-                elif operator == 'datestartswith':
-                    # this is a simplification of the front-end filtering logic,
-                    # only works with complete fields in standard format
-                    dff = dff.loc[dff[col_name].str.startswith(filter_value)]
+                    elif operator == 'eq':
+                        filter_value = filter_value.replace("'", '')
+                        match = Chem.MolFromSmiles(filter_value)
+                        canoical_smiles = Chem.MolToSmiles(match)
+                        dff = dff[dff['name'] == canoical_smiles]
+
             if len(sort_by):
                 dff = dff.sort_values(
                     [col['column_id'] for col in sort_by],
