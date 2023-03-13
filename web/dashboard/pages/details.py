@@ -133,7 +133,7 @@ def update_output(n_clicks, smiles):
     figure.add_trace(go.Line(y=calc_curve[1], x=calc_curve.index, name='Line', ), secondary_y=True, )
     # figure.update_xaxes(range=[200, 600])
     figure.update_layout(
-        title=f"Exp. vs Calc UV ",
+        title=f"Predicted UV",
         xaxis_title="lambda (nm)",
         yaxis_title="Abs(a.u.)",
         font=dict(family="Courier New, monospace", size=18, ),
