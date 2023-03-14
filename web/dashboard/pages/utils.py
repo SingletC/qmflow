@@ -135,3 +135,18 @@ def gen_NTO(fchk,value):
             orbitals.update({i.split()[1]:i.split()[5]})
 
     return orbitals
+
+
+
+ATOM_COLORS = {
+    "C": "#c8c8c8",
+    "H": "#ffffff",
+    "N": "#8f8fff",
+    "S": "#ffc832",
+    "O": "#f00000",
+    "F": "#ffff00",
+    "P": "#ffa500",
+    "K": "#42f4ee",
+    "G": "#3f3f3f",
+    "B": "#ff7700",
+}

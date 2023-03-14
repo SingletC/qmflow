@@ -25,7 +25,7 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 
 from calc.utils import gen_uv, get_orbital_text, ase_atoms_to_dash_data
-from web.dashboard.pages.utils import gen_fchk, gen_cube, gen_hole_electron_cube, gen_chargeDiff, gen_NTO
+from web.dashboard.pages.utils import gen_fchk, gen_cube, gen_hole_electron_cube, gen_chargeDiff, gen_NTO, ATOM_COLORS
 
 Molecular_Orbital = 'Molecular Orbital'
 # TransitionDensity= 'Transition Density of Excitation State'
@@ -143,7 +143,7 @@ def update_output(n_clicks, smiles):
     orbital = get_orbital_text(log)
     viewer_data  = ase_atoms_to_dash_data(read(log))
     style = create_mol3d_style(
-        viewer_data['atoms'], visualization_type='stick', color_element='atom'
+        viewer_data['atoms'], visualization_type='stick', color_element='atom',color_scheme=ATOM_COLORS,
     )
     t = threading.Thread(target=gen_fchk, args=[chk])
     t.start()
