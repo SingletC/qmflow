@@ -10,16 +10,16 @@ from ase.db.table import Table
 def create_dataframe(db: ase.db.core.Database, selection=None, columns=None):
     """Create Pandas DataFrame from database """
     if columns is None:
-        columns = ['formula', 'name', 'osc_str','lambda_', 'ctime']
+        columns = ['formula', 'name', 'osc_str','lambda_', 'ctime','reaction']
     query = list(db.select(selection=selection))
     table = []
     for i in query:
         row = []
         for column in columns:
             try:
-                row+=[getattr(i,column )]
+                row+=[getattr(i,column)]
             except AttributeError:
-                row+=[0]
+                row+=[None]
         row +=[f'<img src="data:image/png;;base64, {i.data.get("img","")}">']
         table +=[row]
     columns.append('Structure')
