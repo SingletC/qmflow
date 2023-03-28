@@ -20,7 +20,9 @@ def create_dataframe(db: ase.db.core.Database, selection=None, columns=None):
         for column in columns:
             row+=[getattr(i,column,0)]
 
-        row +=[f'<img src="data:image/png;;base64, {smiles_2_base64png(i.get("name",""))}">']
+        row +=[f'''<a href="details?smiles={(i.get("name","")).replace('#','$')}">
+        <img src="data:image/png;;base64, {smiles_2_base64png(i.get("name",""))}">
+        </a>''']
         table +=[row]
     columns.append('Structure')
     df = pd.DataFrame(table,columns=columns)
