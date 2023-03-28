@@ -46,28 +46,26 @@ class CallBacks:
             [dash.dependencies.Input('database-table', 'data')],
 
             [dash.dependencies.State('database-table', 'data_previous'),
-            ],
+             ],
             avoid_initial_call=True)
-        def display_output(data,data_previous):
+        def display_output(data, data_previous):
             if data == data_previous or data_previous is None or data is None:
                 return False
             else:
                 data_pd = pd.DataFrame(data)
                 data_previous_pd = pd.DataFrame(data_previous)
-                diff = pd.DataFrame.compare(data_pd,data_previous_pd)
+                diff = pd.DataFrame.compare(data_pd, data_previous_pd)
                 if not diff.get('name'):
                     for entry in diff.columns[::2]:
-                        if len(diff[entry])>1:
+                        if len(diff[entry]) != 1:
                             return False
                         id_ = int(data_previous_pd.iloc[diff[entry].index[0]]['id'])
                         value = data_pd.iloc[diff[entry].index[0]][entry[0]]
                         dict_ = {entry[0]: value if value else 0.0}
 
-                        r  = self.db.update(id = id_, **dict_)
-                        if r[0] == 0 :
-                            return False
-                        else:
-                            self.df = create_dataframe(self.db)
+                        self.db.update(id=id_, **dict_)
+
+                        self.df = create_dataframe(self.db)
                     return True
                 else:
                     return False
