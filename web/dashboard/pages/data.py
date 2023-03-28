@@ -20,7 +20,7 @@ def create_dataframe(db: ase.db.core.Database, selection=None, columns=None):
         for column in columns:
             row+=[getattr(i,column,0)]
 
-        row +=[f'''<a href="details?smiles={(i.get("name","")).replace('#','$')}">
+        row +=[f'''<a href="details?smiles={(i.get("name","")).replace('#','$')} target="_blank"">
         <img src="data:image/png;;base64, {smiles_2_base64png(i.get("name",""))}">
         </a>''']
         table +=[row]
