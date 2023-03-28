@@ -145,7 +145,7 @@ layout = html.Div(
 
                     ],
             markdown_options={'link_target': '_blank', "html": True},
-            data=df.to_dict("records"),
+            data=None,
             sort_action='custom',
             sort_mode='multi',
             sort_by=[],
