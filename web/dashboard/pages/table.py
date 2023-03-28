@@ -4,6 +4,7 @@ import time
 
 import ase.db
 import dash
+import pandas as pd
 from dash import dash_table, Output, State, Input
 from dash import dcc
 from dash import html
@@ -17,6 +18,8 @@ from web.dashboard.pages.layout import html_layout
 import threading
 
 from web.dashboard.pages.utils import split_filter_part
+
+
 class CallBacks:
     def __init__(self, app: dash.Dash, db: ase.db.core.Database):
         self.db = db
@@ -37,6 +40,34 @@ class CallBacks:
         #     """Create Dash datatable from Pandas DataFrame."""
         #     self.df = create_dataframe(self.db)
         #     return self.df .to_dict("records")
+
+        @self.app.callback(
+            Output('notify', 'displayed'),
+            [dash.dependencies.Input('database-table', 'data')],
+
+            [dash.dependencies.State('database-table', 'data_previous'),
+            ],
+            avoid_initial_call=True)
+        def display_output(data,data_previous):
+            if data == data_previous or data_previous is None:
+                return False
+            else:
+                data_pd = pd.DataFrame(data)
+                data_previous_pd = pd.DataFrame(data_previous)
+                diff = pd.DataFrame.compare(data_pd,data_previous_pd)
+                if not diff.get('name'):
+                    for entry in diff.columns[::2]:
+                        if len(diff[entry])>1:
+                            return False
+                        id_ = int(data_previous_pd.iloc[diff[entry].index[0]]['id'])
+                        value = data_pd.iloc[diff[entry].index[0]][entry[0]]
+                        dict_ = {entry[0]: value if value else 0.0}
+
+                        self.db.update(id = id_, **dict_)
+                        self.df = create_dataframe(self.db)
+                    return True
+                else:
+                    return False
 
         @self.app.callback(
             Output('database-table', "data"),
@@ -95,13 +126,14 @@ class CallBacks:
         def reset_to_page_0(filter_query):
 
             return 0
+
     def update_df(self):
         while True:
             self.df = create_dataframe(self.db)
-            time.sleep(120 if os.getenv('DEBUG') is not None else 10)
+            time.sleep(120 if os.getenv('DEBUG') is not None else 20)
 
 
-app = dash.register_page(__name__,path='/')
+app = dash.register_page(__name__, path='/')
 db = ase.db.connect(os.getenv('DATABASE_DIR'))
 # Load DataFrame
 df = create_dataframe(db)
@@ -112,25 +144,10 @@ index_string = html_layout
 # Create Layout
 layout = html.Div(
     children=[
-        # dcc.Graph(
-        #     id="histogram-graph",
-        #     figure={
-        #         "data": [
-        #             {
-        #                 "x": df["complaint_type"],
-        #                 "text": df["complaint_type"],
-        #                 "customdata": df["key"],
-        #                 "name": "311 Calls by region.",
-        #                 "type": "histogram",
-        #             }
-        #         ],
-        #         "layout": {
-        #             "title": "NYC 311 Calls category.",
-        #             "height": 500,
-        #             "padding": 150,
-        #         },
-        #     },
-        # ),
+        dcc.ConfirmDialog(
+            id='notify',
+            message='Data has been updated',
+        ),
 
         dash_table.DataTable(
             id="database-table",
@@ -141,9 +158,10 @@ layout = html.Div(
                 {"name": 'lambda_', "id": 'lambda_', "deletable": True},
                 {"name": 'ctime', "id": 'ctime', "deletable": True},
                 {"name": 'lifetime(ns)', "id": 'lifetime(ns)', "deletable": True},
-                {"name": 'Photoisomerization', "id": 'reaction', "deletable": True, 'presentation': 'dropdown'},
+                {"name": 'Photoisomerization', "id": 'reaction', "deletable": True, 'presentation': 'dropdown',
+                 'editable': True},
 
-                    ],
+            ],
             markdown_options={'link_target': '_blank', "html": True},
             data=None,
             sort_action='custom',
@@ -160,13 +178,12 @@ layout = html.Div(
                                     {'if': {'column_id': 'name'},
                                      'maxWidth': '50px'},
                                     ],
-            editable=True,
+            # editable=True,
             dropdown={'reaction': {
-                            'options': [
-                                    {'label': label, 'value': value}
-                                    for label, value in Experiment_Reaction_Dict.items()]
-                        },}
-
+                'options': [
+                    {'label': label, 'value': value}
+                    for label, value in Experiment_Reaction_Dict.items()]
+            }, }
 
         ),
     ],
@@ -174,5 +191,3 @@ layout = html.Div(
 )
 callbacks = CallBacks(dash, db)
 callbacks.init_callbacks()
-
-

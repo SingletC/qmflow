@@ -12,7 +12,7 @@ from calc.utils import  smiles_2_base64png
 def create_dataframe(db: ase.db.core.Database, selection=None, columns=None):
     """Create Pandas DataFrame from database """
     if columns is None:
-        columns = ['formula', 'name', 'osc_str','lambda_', 'ctime','reaction']
+        columns = ['formula', 'name', 'osc_str','lambda_', 'ctime','reaction','id']
     query = list(db.select(selection=selection))
     table = []
     for i in query:
@@ -20,8 +20,8 @@ def create_dataframe(db: ase.db.core.Database, selection=None, columns=None):
         for column in columns:
             row+=[getattr(i,column,0)]
 
-        row +=[f'''<a href="details?smiles={(i.get("name","")).replace('#','$')} target="_blank"">
-        <img src="data:image/png;;base64, {smiles_2_base64png(i.get("name",""))}">
+        row +=[f'''<a href="details?smiles={(i.get("name","")).replace('#','$')}" target="_blank">
+        <img src="data:image/png;;base64, {i.data.get("img","")}">
         </a>''']
         table +=[row]
     columns.append('Structure')

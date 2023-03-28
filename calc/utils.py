@@ -62,7 +62,7 @@ def get_linear_fit(df, func):
 
 def smiles_2_base64png(smiles: str) -> str:
     mol_rdkit = Chem.MolFromSmiles(smiles)
-    img = Draw.MolToImage(mol_rdkit,size=(150,150))
+    img = Draw.MolToImage(mol_rdkit,size=(250,250))
     buffer = io.BytesIO()
     img.save(buffer, format="png")  # Enregistre l'image dans le buffer
     myimage = buffer.getvalue()
