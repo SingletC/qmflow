@@ -135,16 +135,16 @@ layout = html.Div(
         dash_table.DataTable(
             id="database-table",
             columns=[
+                {"name": 'Structure', "id": 'Structure', "deletable": True, 'presentation': 'markdown'},
                 {"name": 'name', "id": 'name', "deletable": True},
                 {"name": 'osc_str', "id": 'osc_str', "deletable": True},
                 {"name": 'lambda_', "id": 'lambda_', "deletable": True},
                 {"name": 'ctime', "id": 'ctime', "deletable": True},
                 {"name": 'lifetime(ns)', "id": 'lifetime(ns)', "deletable": True},
                 {"name": 'Photoisomerization', "id": 'reaction', "deletable": True, 'presentation': 'dropdown'},
-                {"name": 'Structure', "id": 'Structure', "deletable": True, 'presentation': 'markdown'},
-
 
                     ],
+            markdown_options={'link_target': '_blank', "html": True},
             data=df.to_dict("records"),
             sort_action='custom',
             sort_mode='multi',

@@ -14,7 +14,7 @@ from ase.io import read
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-from calc.utils import read_td_dft, rdkit_2_base64png, smiles_2_ase
+from calc.utils import read_td_dft, smiles_2_ase
 from ratelimit import limits, sleep_and_retry, RateLimitException
 
 from flow.operator import ASEOperator
@@ -129,12 +129,11 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
         if rdkit_mol is None:
             return 'Smiles wrong'
         AllChem.Compute2DCoords(rdkit_mol)
-        img = rdkit_2_base64png(rdkit_mol)
         canonical_smiles = Chem.MolToSmiles(rdkit_mol)
         ase_atom = smiles_2_ase(smiles)
         id_ = self.db.reserve(name=canonical_smiles)
         if id_ is not None:
-            self.db.update(atoms=ase_atom, id=id_, data={'img': img})
+            self.db.update(atoms=ase_atom, id=id_,)
             self.thread_submit(ase_atom, id_)
             return f'Smiles {smiles} submitted'
         else:

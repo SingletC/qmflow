@@ -59,19 +59,14 @@ def get_linear_fit(df, func):
     return r
 
 
-def rdkit_2_base64png(mol_rdkit: Mol) -> str:
-    img = Draw.MolToImage(mol_rdkit)
+
+def smiles_2_base64png(smiles: str) -> str:
+    mol_rdkit = Chem.MolFromSmiles(smiles)
+    img = Draw.MolToImage(mol_rdkit,size=(150,150))
     buffer = io.BytesIO()
     img.save(buffer, format="png")  # Enregistre l'image dans le buffer
     myimage = buffer.getvalue()
     return base64.b64encode(myimage).decode()
-
-def rdkit2png(mol_rdkit: Mol) -> io.BytesIO:
-    img = Draw.MolToImage(mol_rdkit,size=(100,100))
-    buffer = io.BytesIO()
-    img.save(buffer, format="png")  # Enregistre l'image dans le buffer
-    buffer.seek(0)
-    return buffer
 def get_orbital_text(file):
     text = ''
     with open(file) as f:

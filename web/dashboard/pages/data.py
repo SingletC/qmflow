@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 from ase.db.table import Table
 
+from calc.utils import  smiles_2_base64png
+
 
 def create_dataframe(db: ase.db.core.Database, selection=None, columns=None):
     """Create Pandas DataFrame from database """
@@ -18,7 +20,7 @@ def create_dataframe(db: ase.db.core.Database, selection=None, columns=None):
         for column in columns:
             row+=[getattr(i,column,0)]
 
-        row +=[f"[![smiles](../smiles/{i.get('name')})](../smiles/{i.get('name')})"]
+        row +=[f'<img src="data:image/png;;base64, {smiles_2_base64png(i.get("name",""))}">']
         table +=[row]
     columns.append('Structure')
     df = pd.DataFrame(table,columns=columns)
