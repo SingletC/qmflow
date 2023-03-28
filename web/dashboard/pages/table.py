@@ -12,6 +12,7 @@ from rdkit.Chem import MolFromSmiles
 
 from calc.call import SubmitTDDFTViaAndromeda
 from web.dashboard.pages.data import create_dataframe
+from web.dashboard.pages.datadict import Experiment_Reaction_Dict
 from web.dashboard.pages.layout import html_layout
 import threading
 
@@ -134,9 +135,16 @@ layout = html.Div(
         dash_table.DataTable(
             id="database-table",
             columns=[
-                {"name": i, "id": i, 'presentation': 'markdown' if i == 'Structure' else 'input', "deletable": True}
-                for
-                i in df.columns],
+                {"name": 'name', "id": 'name', "deletable": True},
+                {"name": 'osc_str', "id": 'osc_str', "deletable": True},
+                {"name": 'lambda_', "id": 'lambda_', "deletable": True},
+                {"name": 'ctime', "id": 'ctime', "deletable": True},
+                {"name": 'lifetime(ns)', "id": 'lifetime(ns)', "deletable": True},
+                {"name": 'Photoisomerization', "id": 'reaction', "deletable": True, 'presentation': 'dropdown'},
+                {"name": 'Structure', "id": 'Structure', "deletable": True, 'presentation': 'markdown'},
+
+
+                    ],
             data=df.to_dict("records"),
             sort_action='custom',
             sort_mode='multi',
@@ -147,12 +155,18 @@ layout = html.Div(
             filter_action="custom",
             filter_query='',
             row_deletable=True,
-            markdown_options={'link_target': '_blank', "html": True},
             style_cell_conditional=[{'if': {'column_id': 'Structure'},
                                      'width': '400px'},
                                     {'if': {'column_id': 'name'},
                                      'maxWidth': '50px'},
                                     ],
+            editable=True,
+            dropdown={'reaction': {
+                            'options': [
+                                    {'label': label, 'value': value}
+                                    for label, value in Experiment_Reaction_Dict.items()]
+                        },}
+
 
         ),
     ],

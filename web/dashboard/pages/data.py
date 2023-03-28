@@ -16,11 +16,9 @@ def create_dataframe(db: ase.db.core.Database, selection=None, columns=None):
     for i in query:
         row = []
         for column in columns:
-            try:
-                row+=[getattr(i,column)]
-            except AttributeError:
-                row+=[None]
-        row +=[f'<img src="data:image/png;;base64, {i.data.get("img","")}">']
+            row+=[getattr(i,column,0)]
+
+        row +=[f"[![smiles](../smiles/{i.get('name')})](../smiles/{i.get('name')})"]
         table +=[row]
     columns.append('Structure')
     df = pd.DataFrame(table,columns=columns)

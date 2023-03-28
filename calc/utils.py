@@ -65,6 +65,13 @@ def rdkit_2_base64png(mol_rdkit: Mol) -> str:
     img.save(buffer, format="png")  # Enregistre l'image dans le buffer
     myimage = buffer.getvalue()
     return base64.b64encode(myimage).decode()
+
+def rdkit2png(mol_rdkit: Mol) -> io.BytesIO:
+    img = Draw.MolToImage(mol_rdkit,size=(100,100))
+    buffer = io.BytesIO()
+    img.save(buffer, format="png")  # Enregistre l'image dans le buffer
+    buffer.seek(0)
+    return buffer
 def get_orbital_text(file):
     text = ''
     with open(file) as f:
