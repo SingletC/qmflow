@@ -49,7 +49,7 @@ class CallBacks:
             ],
             avoid_initial_call=True)
         def display_output(data,data_previous):
-            if data == data_previous or data_previous is None:
+            if data == data_previous or data_previous is None or data is None:
                 return False
             else:
                 data_pd = pd.DataFrame(data)
