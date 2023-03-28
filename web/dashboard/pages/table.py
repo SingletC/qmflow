@@ -174,7 +174,7 @@ layout = html.Div(
             filter_query='',
             row_deletable=True,
             style_cell_conditional=[{'if': {'column_id': 'Structure'},
-                                     'width': '400px'},
+                                     'width': '300px'},
                                     {'if': {'column_id': 'name'},
                                      'maxWidth': '50px'},
                                     ],
@@ -182,7 +182,8 @@ layout = html.Div(
             dropdown={'reaction': {
                 'options': [
                     {'label': label, 'value': value}
-                    for label, value in Experiment_Reaction_Dict.items()]
+                    for label, value in Experiment_Reaction_Dict.items()],
+                'clearable': False,
             }, }
 
         ),
