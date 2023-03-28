@@ -63,8 +63,11 @@ class CallBacks:
                         value = data_pd.iloc[diff[entry].index[0]][entry[0]]
                         dict_ = {entry[0]: value if value else 0.0}
 
-                        self.db.update(id = id_, **dict_)
-                        self.df = create_dataframe(self.db)
+                        r  = self.db.update(id = id_, **dict_)
+                        if r[0] == 0 :
+                            return False
+                        else:
+                            self.df = create_dataframe(self.db)
                     return True
                 else:
                     return False
