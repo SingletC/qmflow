@@ -13,7 +13,7 @@ from rdkit.Chem import MolFromSmiles
 
 from calc.call import SubmitTDDFTViaAndromeda
 from web.dashboard.pages.data import create_dataframe
-from web.dashboard.pages.datadict import Experiment_Reaction_Dict
+from web.dashboard.pages.datadict import Experiment_Reaction_Dict, NTO_Type_Dict
 from web.dashboard.pages.layout import html_layout
 import threading
 
@@ -159,8 +159,8 @@ layout = html.Div(
                 {"name": 'lambda_', "id": 'lambda_', "deletable": True},
                 {"name": 'ctime', "id": 'ctime', "deletable": True},
                 {"name": 'lifetime(ns)', "id": 'lifetime(ns)', "deletable": True},
-                {"name": 'Photoisomerization', "id": 'reaction', "deletable": True, 'presentation': 'dropdown',
-                 'editable': True},
+                {"name": 'Photoisomerization', "id": 'reaction', "deletable": True, 'presentation': 'dropdown','editable': True},
+                {"name": 'NTO Type', "id": 'nto_type', "deletable": True, 'presentation': 'dropdown','editable': True},
 
             ],
             markdown_options={'link_target': '_blank', "html": True},
@@ -180,12 +180,17 @@ layout = html.Div(
                                      'maxWidth': '50px'},
                                     ],
             # editable=True,
-            dropdown={'reaction': {
-                'options': [
-                    {'label': label, 'value': value}
-                    for label, value in Experiment_Reaction_Dict.items()],
+            dropdown={'reaction': {'options': [
+                {'label': label, 'value': value} for label, value in Experiment_Reaction_Dict.items()],
                 'clearable': False,
-            }, }
+                                  },
+                        'nto_type': {'options': [
+                {'label': label, 'value': value} for label, value in NTO_Type_Dict.items()],
+                'clearable': False,
+                                  },
+
+
+            }
 
         ),
     ],

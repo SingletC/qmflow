@@ -12,7 +12,7 @@ from calc.utils import  smiles_2_base64png
 def create_dataframe(db: ase.db.core.Database, selection=None, columns=None):
     """Create Pandas DataFrame from database """
     if columns is None:
-        columns = ['formula', 'name', 'osc_str','lambda_', 'ctime','reaction','id']
+        columns = ['formula', 'name', 'osc_str','lambda_', 'ctime','reaction','id','nto_type']
     query = list(db.select(selection=selection))
     table = []
     for i in query:

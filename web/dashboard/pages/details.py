@@ -1,6 +1,7 @@
 import os
 import threading
 import urllib
+from typing import Union
 
 import ase.db
 import dash
@@ -112,6 +113,17 @@ def smiles_2_file(smiles):
     r = list(r)
     if len(r) == 1:
         return r[0].data.file_path
+    else:
+        return None
+def smiles_2_db_entry(smiles) -> Union[ase.db.core.AtomsRow, None]:
+    if smiles is None:
+        return None
+    rdkit_mol = Chem.MolFromSmiles(smiles)
+    canonical_smiles = Chem.MolToSmiles(rdkit_mol)
+    r = db.select(name=canonical_smiles)
+    r = list(r)
+    if len(r) == 1:
+        return r[0]
     else:
         return None
 
@@ -229,9 +241,17 @@ def func(iso_type, value, type2, iso, smiles):
                    f'electron density red(increase) blue(decrease)\n' + txt.replace(
             '\n', '\n\n'), []
     if iso_type == Natural_Transition_Orbital:
-        dict_ = gen_NTO(fchk, value)
+        dict_, orbital_compo = gen_NTO(fchk, value)
         opts = [{"label": f'MO {i[0]} with {float(i[1]) * 100:0.2f}% contribution', "value": i[0]} for i in
                 dict_.items()]
+        db_entry = smiles_2_db_entry(smiles)
+        if db_entry is not None and value == 1 :
+            if db_entry.get('nto_type',0) ==0:
+                if orbital_compo[0] > 70:
+                    db.update(id=db_entry.id,nto_type=-1)
+                if orbital_compo[1] > 70:
+                    db.update(id=db_entry.id,nto_type=1)
+
         if type2 == None:
             return {}, '', opts
         filename = f'{fchk}{value}NTO.mwfn'
@@ -243,7 +263,8 @@ def func(iso_type, value, type2, iso, smiles):
                 'opacity': 0.95,
                 'positiveVolumetricColor': 'red',
                 'negativeVolumetricColor': 'blue',
-                }, f'current orbital is NTO: excitation state {value} Orbital {type2}', opts
+                }, f'current orbital is NTO: excitation state {value} Orbital {type2}                    ' \
+                   f'excited orbital_composition { {type_ : val for type_, val in zip("spdfg",orbital_compo)} } ', opts
 
 
 @dash.callback(
