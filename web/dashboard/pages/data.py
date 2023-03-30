@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 from ase.db.table import Table
 
-from calc.utils import  smiles_2_base64png
 
 
 def create_dataframe(db: ase.db.core.Database, selection=None, columns=None):
