@@ -74,9 +74,9 @@ def generate_nto_mwfn(label) -> List:
 
 
 def determine_nto_type(composition: List) -> int:
-    if composition[0] > 70:
+    if composition[0] > 50:
         return -1
-    if composition[1] > 70:
+    if composition[1] > 50:
         return 1
     return 0
 

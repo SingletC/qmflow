@@ -26,6 +26,7 @@ import plotly.graph_objects as go  # or plotly.express as px
 import plotly.express as px
 from plotly.subplots import make_subplots
 
+from calc.call import determine_nto_type
 from calc.utils import gen_uv, get_orbital_text, ase_atoms_to_dash_data
 from web.dashboard.pages.utils import gen_fchk, gen_cube, gen_hole_electron_cube, gen_chargeDiff, gen_NTO, ATOM_COLORS
 
@@ -247,11 +248,8 @@ def func(iso_type, value, type2, iso, smiles):
         db_entry = smiles_2_db_entry(smiles)
         if db_entry is not None and value == 1 :
             if db_entry.get('nto_type',0) ==0:
-                if orbital_compo[0] > 70:
-                    db.update(id=db_entry.id,nto_type=-1)
-                if orbital_compo[1] > 70:
-                    db.update(id=db_entry.id,nto_type=1)
-
+                nto_type = determine_nto_type(orbital_compo)
+                db.update(id=db_entry.id, nto_type=nto_type)
         if type2 == None:
             return {}, '', opts
         filename = f'{fchk}{value}NTO.mwfn'
