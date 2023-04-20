@@ -9,6 +9,7 @@ operators = [['ge ', '>='],
              ['gt ', '>'],
              ['ne ', '!='],
              ['eq ', '='],
+             ['scontains '],
              ['contains '],
              ['datestartswith ']]
 

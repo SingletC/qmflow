@@ -5,6 +5,7 @@ import time
 import ase.db
 import dash
 import pandas as pd
+from ase.db.core import str_represents
 from dash import dash_table, Output, State, Input
 from dash import dcc
 from dash import html
@@ -93,7 +94,10 @@ class CallBacks:
                     col_name, operator, filter_value = split_filter_part(filter_part)
 
                 if col_name and col_name != 'name':
-                    dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
+                    if operator == 'scontains':
+                        dff = dff.loc[dff[col_name].str.contains(filter_value) == True]
+                    else:
+                        dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
                 else:
                     if operator == 'contains':
                         filter_value = filter_value.replace("'", '')
