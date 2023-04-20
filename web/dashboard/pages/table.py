@@ -61,6 +61,8 @@ class CallBacks:
                             return False
                         id_ = int(data_previous_pd.iloc[diff[entry].index[0]]['id'])
                         value = data_pd.iloc[diff[entry].index[0]][entry[0]]
+                        if entry[0] == 'note':
+                            value = '_' + value
                         dict_ = {entry[0]: value if value else 0.0}
 
                         self.db.update(id=id_, **dict_)
@@ -161,6 +163,7 @@ layout = html.Div(
                 {"name": 'lifetime(ns)', "id": 'lifetime(ns)', "deletable": True},
                 {"name": 'Photoisomerization', "id": 'reaction', "deletable": True, 'presentation': 'dropdown','editable': True},
                 {"name": 'NTO Type', "id": 'nto_type', "deletable": True, 'presentation': 'dropdown','editable': True},
+                {"name": 'note', "id": 'note', "deletable": True,'editable': True, 'type ': 'text'},
 
             ],
             markdown_options={'link_target': '_blank', "html": True},
