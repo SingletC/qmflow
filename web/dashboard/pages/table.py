@@ -165,9 +165,10 @@ layout = html.Div(
                 {"name": 'lambda_', "id": 'lambda_', "deletable": True},
                 {"name": 'ctime', "id": 'ctime', "deletable": True},
                 {"name": 'lifetime(ns)', "id": 'lifetime(ns)', "deletable": True},
-                {"name": 'Photoisomerization', "id": 'reaction', "deletable": True, 'presentation': 'dropdown','editable': True},
-                {"name": 'NTO Type', "id": 'nto_type', "deletable": True, 'presentation': 'dropdown','editable': True},
-                {"name": 'note', "id": 'note', "deletable": True,'editable': True, 'type ': 'text'},
+                {"name": 'Photoisomerization', "id": 'reaction', "deletable": True, 'presentation': 'dropdown',
+                 'editable': True},
+                {"name": 'NTO Type', "id": 'nto_type', "deletable": True, 'presentation': 'dropdown', 'editable': True},
+                {"name": 'note', "id": 'note', "deletable": True, 'editable': True, 'type ': 'text'},
 
             ],
             markdown_options={'link_target': '_blank', "html": True},
@@ -185,16 +186,18 @@ layout = html.Div(
                                      'width': '300px'},
                                     {'if': {'column_id': 'name'},
                                      'maxWidth': '50px'},
+                                    {'if': {'column_id': 'note'},
+                                     'minWidth': '200px', },
                                     ],
             # editable=True,
             dropdown={'reaction': {'options': [
                 {'label': label, 'value': value} for label, value in Experiment_Reaction_Dict.items()],
                 'clearable': False,
-                                  },
-                        'nto_type': {'options': [
-                {'label': label, 'value': value} for label, value in NTO_Type_Dict.items()],
-                'clearable': False,
-                                  },
+            },
+                'nto_type': {'options': [
+                    {'label': label, 'value': value} for label, value in NTO_Type_Dict.items()],
+                    'clearable': False,
+                },
 
 
             }
