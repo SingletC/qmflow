@@ -13,9 +13,9 @@ def write_molpro(atoms, **params):
     charge = params['charge']
     mult = params['mult']
     label = params['label']
-
+    mem = params['memory']
     with open(label + '.inp', 'w') as fd:
-        fd.write('memory,12800,m\n')
+        fd.write(f'memory,{mem},m\n')
         fd.write('geomtyp=xyz\n')
         fd.write('geometry={\n')
         fd.write(f'{len(atoms)}\n')
@@ -45,7 +45,8 @@ basis=VTZ-F12
 rhf
 CCSD(t)-F12A
 FORCE''',
-        n=1)
+        n=1,
+        memory=12800,)
 
     def __init__(self, restart=None, ignore_bad_restart_file=FileIOCalculator._deprecated, label='molpro', atoms=None,
                  n=1,**kwargs):
