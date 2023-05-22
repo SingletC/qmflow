@@ -9,7 +9,10 @@ class Gaussian_fix(Gaussian):
     command = 'GAUSSIAN PREFIX.com'  # avoid redirecting output, buffer may fail
 
     def write_input(self, atoms, properties=None, system_changes=None):
-
+        if self.parameters.get('extra') is None:
+            self.parameters['extra'] = 'IOp(2/9=2000)'
+        else:
+            self.parameters['extra'] += 'IOp(2/9=2000)'
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
         write(self.label + '.com', atoms, properties=properties,
               format='gaussian-in', parallel=False, **self.parameters)
@@ -30,10 +33,11 @@ class Gaussian_fix(Gaussian):
                 # write .com file back
                 with open(self.label + '.com', 'w') as f:
                     f.writelines(lines)
-
 if __name__ == "__main__":
-    # Test
     atoms = Atoms('H2O', [[0, 0, 0], [0, 0, 0.74], [0, 0, 1.64]])
     atoms.constraints = [FixAtoms(indices=[0])]
     atoms.calc = Gaussian_fix(method='opt=modredundant')
     atoms.get_potential_energy()
+
+if __name__ == "__main__":
+    atoms = read('../Gaussian.log')
