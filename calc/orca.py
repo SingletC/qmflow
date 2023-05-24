@@ -6,28 +6,28 @@ from ase.io import read
 
 class OrcaNEB:
     batch = """#!/bin/bash
-    #SBATCH -t 100:00:00
-    #SBATCH --mem 240G
-    #SBATCH -p full_nodes64,full_nodes48,partial_nodes
-    #SBATCH -n 48
-    #SBATCH -N 1
-    ulimit -s unlimited
-    module purge
-    module load orca
-    export job=orca
-    export RSH_COMMAND="/usr/bin/ssh -x"
-    export scratchlocation=/dev/shm/
-    tdir=$(mktemp -d $scratchlocation//orcajob__$SLURM_JOB_ID-XXXX)
-    cp  $SLURM_SUBMIT_DIR/*.inp $tdir/
+#SBATCH -t 100:00:00
+#SBATCH --mem 240G
+#SBATCH -p full_nodes64,full_nodes48,partial_nodes
+#SBATCH -n 48
+#SBATCH -N 1
+ulimit -s unlimited
+module purge
+module load orca
+export job=orca
+export RSH_COMMAND="/usr/bin/ssh -x"
+export scratchlocation=/dev/shm/
+tdir=$(mktemp -d $scratchlocation//orcajob__$SLURM_JOB_ID-XXXX)
+cp  $SLURM_SUBMIT_DIR/*.inp $tdir/
 
-    cp  $SLURM_SUBMIT_DIR/*.gbw $tdir/
+cp  $SLURM_SUBMIT_DIR/*.gbw $tdir/
 
-    cp  $SLURM_SUBMIT_DIR/*.xyz $tdir/
-    cd $tdir
-    /usr/public/orca/orca_5_0_1_linux_x86-64_shared_openmpi411///orca $job.inp > $job.out
-    cp $tdir/*.xyz $SLURM_SUBMIT_DIR
-    cp $tdir/*.out $SLURM_SUBMIT_DIR
-    rm $tdir/ -rf
+cp  $SLURM_SUBMIT_DIR/*.xyz $tdir/
+cd $tdir
+/usr/public/orca/orca_5_0_1_linux_x86-64_shared_openmpi411///orca $job.inp > $job.out
+cp $tdir/*.xyz $SLURM_SUBMIT_DIR
+cp $tdir/*.out $SLURM_SUBMIT_DIR
+rm $tdir/ -rf
     """
 
     def __init__(self, method, label='orca_temp', srun_command=None):
@@ -40,7 +40,7 @@ END
 * XYZfile 0 1 final.xyz
 """
         self.label = label
-        self.srun = srun_command or os.getenv('ORCA_CMD') or 'sbatch --wait orca.sh'
+        self.srun = srun_command or 'sbatch --wait orca.sh'
 
     def run_neb(self, r: Atoms, p: Atoms):
         # make directory if not exist
