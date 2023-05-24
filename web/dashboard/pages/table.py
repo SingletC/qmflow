@@ -170,7 +170,7 @@ layout = html.Div(
                 {"name": 'NTO Type', "id": 'nto_type', "deletable": True, 'presentation': 'dropdown', 'editable': True},
                 {"name": 'note', "id": 'note', "deletable": True, 'editable': True, 'type': 'text'},
                 {"name": 'delta_G', "id": 'delta_G', "deletable": True},
-                {"name": 'deltaG_TS', "id": 'deltaG_TS', "deletable": True},
+                {"name": 'deltaG_TS', "id": 'delta_G_TS', "deletable": True},
             ],
             markdown_options={'link_target': '_blank', "html": True},
             data=None,
