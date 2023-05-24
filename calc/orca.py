@@ -7,7 +7,7 @@ from ase.io import read
 class OrcaNEB:
     batch = """#!/bin/bash
 #SBATCH -t 100:00:00
-#SBATCH --mem 20G
+#SBATCH --mem 100G
 #SBATCH -p full_nodes64,full_nodes48,partial_nodes
 #SBATCH -n 48
 #SBATCH -N 1
