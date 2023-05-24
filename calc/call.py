@@ -14,7 +14,9 @@ from ase.io import read
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-from calc.utils import read_td_dft, smiles_2_ase, smiles_2_base64png
+from calc.orca import OrcaNEB
+from calc.rdkit_rxn import get_r_p_from_smiles
+from calc.utils import read_td_dft, smiles_2_ase, smiles_2_base64png, read_gaussian_thermal
 from ratelimit import limits, sleep_and_retry, RateLimitException
 
 from flow.operator import ASEOperator
@@ -163,3 +165,78 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
             return f'Smiles {smiles} submitted'
         else:
             return f'Structure {smiles} submitted earlier'
+
+class SubmitKineticViaAndromeda():
+    def __init__(self, db: ase.db.core.Database):
+        self.db = db
+    @sleep_and_retry
+    @limits(calls=4, period=60)
+    def submit(self, canonical_smiles: str, id_:int) -> bool:
+        try:
+            method = 'M062X';
+            scale = 0.97
+            label = get_random_string()
+            r_mol, p_mol = get_r_p_from_smiles(canonical_smiles)
+            pm7_opt = Gaussian(method=f'opt(loose) PM7 IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'), output_type='N',
+                               mem=os.getenv('GAUSSIAN_M'), label=label+"_pm7")
+            pm7_opt.command = os.getenv('GAUSSIAN_CMD')
+            pm7_opt.calculate(r_mol)
+            pm7_opt.calculate(p_mol)
+            neb = OrcaNEB('M062X cc-pvdz')
+            neb.run_neb(r_mol, p_mol)
+            r_mol = neb.get_reactant()
+            p_mol = neb.get_product()
+            ts = neb.get_ts()
+            opt_calc = Gaussian(method=f'{method} opt Grid=SuperFineGrid  '
+                                       f'scale={scale} scrf(smd,solvent=cyclohexane) IOp(2/9=2000) freq'
+                                ,nprocshared=os.getenv('GAUSSIAN_N'),
+                                output_type='N',
+                                mem=os.getenv('GAUSSIAN_M'))
+            opt_calc.command = os.getenv('GAUSSIAN_CMD')
+            opt_calc.label = label +'r'
+            opt_calc.calculate(r_mol)
+            opt_calc.label = label +'p'
+            opt_calc.calculate(p_mol)
+            opt_ts_calc = Gaussian(method=f'{method} opt(ts,calcfc,noeig) Grid=SuperFineGrid  '
+                                       f'scale={scale} scrf(smd,solvent=cyclohexane) IOp(2/9=2000) freq'
+                                , nprocshared=os.getenv('GAUSSIAN_N'),
+                                output_type='N',
+                                mem=os.getenv('GAUSSIAN_M'))
+            opt_ts_calc.command = os.getenv('GAUSSIAN_CMD')
+            opt_ts_calc.label = label +'ts'
+            opt_ts_calc.calculate(ts)
+            r_e = read_gaussian_thermal(label+'r')
+            p_e = read_gaussian_thermal(label+'p')
+            ts_e = read_gaussian_thermal(label+'ts')
+            delta_G = (p_e - r_e) * 627.509
+            delta_G_TS = (ts_e - r_e) * 627.509
+            self.db.update(id=id_, delta_G=delta_G, delta_G_TS=delta_G_TS)
+        except RateLimitException:
+            raise RateLimitException
+        except Exception as e:
+            print(f'error\n {e}\n ')
+            traceback.print_tb(e.__traceback__)
+        return True
+
+    def thread_submit(self, canonical_smiles: str, id_:int):
+        t = threading.Thread(target=self.submit, args=[canonical_smiles, id_])
+        t.start()
+    def smiles_submit(self, smiles):
+        if smiles is None:
+            return 'Empty Smiles'
+        try:
+            rdkit_mol = Chem.MolFromSmiles(smiles)
+        except ArgumentError:
+            return 'Smiles wrong'
+        if rdkit_mol is None:
+            return 'Smiles wrong'
+        AllChem.Compute2DCoords(rdkit_mol)
+        canonical_smiles = Chem.MolToSmiles(rdkit_mol)
+        id_ = self.db.select(name=canonical_smiles)
+        if id_ is None:
+            return 'do TD-DFT first'
+        elif self.db.get(id=id_).get('delta_G') is not None:
+            return 'already calculated'
+        else:
+            self.thread_submit(canonical_smiles, id_)
+            return 'submited'

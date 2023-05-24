@@ -119,3 +119,14 @@ def ase_atoms_to_dash_data(mol:Atoms):
     else:
         bonds = [[],[]]
     return {'atoms':atom,'bonds':[  {"atom1_index": i,"atom2_index": j,"bond_order": 1} for i,j in zip(bonds[0],bonds[1])]}
+
+def read_gaussian_thermal(log_file):
+    try:
+        with open(log_file, 'r') as f:
+            log_contents = f.readlines()
+            for line in log_contents:
+                if 'Sum of electronic and thermal Free Energies=' in line:
+                    free_energy = float(line.split()[-1])
+                    return free_energy
+    except:
+        return 0.0
