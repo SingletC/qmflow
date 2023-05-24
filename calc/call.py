@@ -186,7 +186,7 @@ class SubmitKineticViaAndromeda():
             pm7_opt.command = os.getenv('GAUSSIAN_CMD')
             pm7_opt.calculate(r_mol)
             pm7_opt.calculate(p_mol)
-            neb = OrcaNEB('M062X cc-pvdz')
+            neb = OrcaNEB('M062X cc-pvdz',label=label)
             neb.run_neb(r_mol, p_mol)
             r_mol = neb.get_reactant()
             p_mol = neb.get_product()
@@ -197,9 +197,9 @@ class SubmitKineticViaAndromeda():
                                 output_type='N',
                                 mem=os.getenv('GAUSSIAN_M'))
             opt_calc.command = os.getenv('GAUSSIAN_CMD')
-            opt_calc.label = label + 'r'
+            opt_calc.label = label + '/r'
             opt_calc.calculate(r_mol)
-            opt_calc.label = label + 'p'
+            opt_calc.label = label + '/p'
             opt_calc.calculate(p_mol)
             opt_ts_calc = Gaussian(method=f'{method} opt(ts,calcfc,noeig) Grid=SuperFineGrid  '
                                           f'scale={scale} scrf(smd,solvent=cyclohexane) IOp(2/9=2000) freq'
@@ -207,11 +207,11 @@ class SubmitKineticViaAndromeda():
                                    output_type='N',
                                    mem=os.getenv('GAUSSIAN_M'))
             opt_ts_calc.command = os.getenv('GAUSSIAN_CMD')
-            opt_ts_calc.label = label + 'ts'
+            opt_ts_calc.label = label + '/ts'
             opt_ts_calc.calculate(ts)
-            r_e = read_gaussian_thermal(label + 'r')
-            p_e = read_gaussian_thermal(label + 'p')
-            ts_e = read_gaussian_thermal(label + 'ts')
+            r_e = read_gaussian_thermal(label + '/r')
+            p_e = read_gaussian_thermal(label + '/p')
+            ts_e = read_gaussian_thermal(label + '/ts')
             delta_G = (p_e - r_e) * 627.509
             delta_G_TS = (ts_e - r_e) * 627.509
             self.db.update(id=id_, delta_G=delta_G, delta_G_TS=delta_G_TS, neb_label=label)
