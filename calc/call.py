@@ -58,7 +58,8 @@ def read_td_dft_from_ase(atoms: Atoms) -> dict:
 
 def update_db(db: ase.db.core.Database):
     def inner(id: int, atoms: Atoms, uv: dict, nto_type: int) -> None:
-        db.update(id=id, atoms=atoms, lambda_=uv['lambda'], osc_str=uv['osc_str'],nto_type=nto_type, data={'file_path': atoms.calc.label},
+        db.update(id=id, atoms=atoms, lambda_=uv['lambda'], osc_str=uv['osc_str'], nto_type=nto_type,
+                  data={'file_path': atoms.calc.label},
                   stage=4)
 
     return inner
@@ -166,19 +167,22 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
         else:
             return f'Structure {smiles} submitted earlier'
 
+
 class SubmitKineticViaAndromeda():
     def __init__(self, db: ase.db.core.Database):
         self.db = db
+
     @sleep_and_retry
     @limits(calls=4, period=60)
-    def submit(self, canonical_smiles: str, id_:int) -> bool:
+    def submit(self, canonical_smiles: str, id_: int) -> bool:
         try:
             method = 'M062X';
             scale = 0.97
             label = get_random_string()
             r_mol, p_mol = get_r_p_from_smiles(canonical_smiles)
-            pm7_opt = Gaussian(method=f'opt(loose) PM7 IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'), output_type='N',
-                               mem=os.getenv('GAUSSIAN_M'), label=label+"_pm7")
+            pm7_opt = Gaussian(method=f'opt(loose) PM7 IOP(2/9=2000) ', nprocshared=os.getenv('GAUSSIAN_N'),
+                               output_type='N',
+                               mem=os.getenv('GAUSSIAN_M'), label=label + "_pm7")
             pm7_opt.command = os.getenv('GAUSSIAN_CMD')
             pm7_opt.calculate(r_mol)
             pm7_opt.calculate(p_mol)
@@ -189,25 +193,25 @@ class SubmitKineticViaAndromeda():
             ts = neb.get_ts()
             opt_calc = Gaussian(method=f'{method} opt Grid=SuperFineGrid  '
                                        f'scale={scale} scrf(smd,solvent=cyclohexane) IOp(2/9=2000) freq'
-                                ,nprocshared=os.getenv('GAUSSIAN_N'),
-                                output_type='N',
-                                mem=os.getenv('GAUSSIAN_M'))
-            opt_calc.command = os.getenv('GAUSSIAN_CMD')
-            opt_calc.label = label +'r'
-            opt_calc.calculate(r_mol)
-            opt_calc.label = label +'p'
-            opt_calc.calculate(p_mol)
-            opt_ts_calc = Gaussian(method=f'{method} opt(ts,calcfc,noeig) Grid=SuperFineGrid  '
-                                       f'scale={scale} scrf(smd,solvent=cyclohexane) IOp(2/9=2000) freq'
                                 , nprocshared=os.getenv('GAUSSIAN_N'),
                                 output_type='N',
                                 mem=os.getenv('GAUSSIAN_M'))
+            opt_calc.command = os.getenv('GAUSSIAN_CMD')
+            opt_calc.label = label + 'r'
+            opt_calc.calculate(r_mol)
+            opt_calc.label = label + 'p'
+            opt_calc.calculate(p_mol)
+            opt_ts_calc = Gaussian(method=f'{method} opt(ts,calcfc,noeig) Grid=SuperFineGrid  '
+                                          f'scale={scale} scrf(smd,solvent=cyclohexane) IOp(2/9=2000) freq'
+                                   , nprocshared=os.getenv('GAUSSIAN_N'),
+                                   output_type='N',
+                                   mem=os.getenv('GAUSSIAN_M'))
             opt_ts_calc.command = os.getenv('GAUSSIAN_CMD')
-            opt_ts_calc.label = label +'ts'
+            opt_ts_calc.label = label + 'ts'
             opt_ts_calc.calculate(ts)
-            r_e = read_gaussian_thermal(label+'r')
-            p_e = read_gaussian_thermal(label+'p')
-            ts_e = read_gaussian_thermal(label+'ts')
+            r_e = read_gaussian_thermal(label + 'r')
+            p_e = read_gaussian_thermal(label + 'p')
+            ts_e = read_gaussian_thermal(label + 'ts')
             delta_G = (p_e - r_e) * 627.509
             delta_G_TS = (ts_e - r_e) * 627.509
             self.db.update(id=id_, delta_G=delta_G, delta_G_TS=delta_G_TS)
@@ -218,9 +222,10 @@ class SubmitKineticViaAndromeda():
             traceback.print_tb(e.__traceback__)
         return True
 
-    def thread_submit(self, canonical_smiles: str, id_:int):
+    def thread_submit(self, canonical_smiles: str, id_: int):
         t = threading.Thread(target=self.submit, args=[canonical_smiles, id_])
         t.start()
+
     def smiles_submit(self, smiles):
         if smiles is None:
             return 'Empty Smiles'
@@ -238,5 +243,6 @@ class SubmitKineticViaAndromeda():
         elif self.db.get(id=id_).get('delta_G') is not None:
             return 'already calculated'
         else:
+            self.db.update(id=id_, delta_G=-1)  # label as ongoing calculation
             self.thread_submit(canonical_smiles, id_)
             return 'submited'
