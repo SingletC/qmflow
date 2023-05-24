@@ -239,7 +239,7 @@ class SubmitKineticViaAndromeda():
         id_ = self.db.get(name=canonical_smiles).id
         if id_ is None:
             return 'do TD-DFT first'
-        elif self.db.get(id=id_).get('delta_G') is not None:
+        elif not self.db.get(id=id_).get('delta_G'):
             return 'already calculated'
         else:
             self.db.update(id=id_, delta_G=-1)  # label as ongoing calculation
