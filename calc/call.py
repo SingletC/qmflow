@@ -237,7 +237,7 @@ class SubmitKineticViaAndromeda():
             return 'Smiles wrong'
         AllChem.Compute2DCoords(rdkit_mol)
         canonical_smiles = Chem.MolToSmiles(rdkit_mol)
-        id_ = self.db.select(name=canonical_smiles)
+        id_ = self.db.get(name=canonical_smiles).id
         if id_ is None:
             return 'do TD-DFT first'
         elif self.db.get(id=id_).get('delta_G') is not None:
