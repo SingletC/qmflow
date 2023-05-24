@@ -25,7 +25,8 @@ class OrcaNEB:
     cp  $SLURM_SUBMIT_DIR/*.xyz $tdir/
     cd $tdir
     /usr/public/orca/orca_5_0_1_linux_x86-64_shared_openmpi411///orca $job.inp > $job.out
-    cp $tdir/* $SLURM_SUBMIT_DIR
+    cp $tdir/*.xyz $SLURM_SUBMIT_DIR
+    cp $tdir/*.out $SLURM_SUBMIT_DIR
     rm $tdir/ -rf
     """
 
