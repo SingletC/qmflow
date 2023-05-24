@@ -214,7 +214,7 @@ class SubmitKineticViaAndromeda():
             ts_e = read_gaussian_thermal(label + 'ts')
             delta_G = (p_e - r_e) * 627.509
             delta_G_TS = (ts_e - r_e) * 627.509
-            self.db.update(id=id_, delta_G=delta_G, delta_G_TS=delta_G_TS)
+            self.db.update(id=id_, delta_G=delta_G, delta_G_TS=delta_G_TS, neb_label=label)
         except RateLimitException:
             raise RateLimitException
         except Exception as e:
