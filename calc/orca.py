@@ -59,7 +59,7 @@ END
         os.system(f'cd {self.label}; {self.srun}')
 
     def get_ts(self):
-        return read(f'{self.label}/NEB-TS.xyz')
+        return read(f'{self.label}/orca_NEB-TS_converged.xyz')
 
     def get_reactant(self):
         return read(f'{self.label}/orca_reactant.xyz')
