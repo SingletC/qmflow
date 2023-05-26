@@ -208,9 +208,9 @@ class SubmitKineticViaAndromeda():
             opt_ts_calc.command = os.getenv('GAUSSIAN_CMD')
             opt_ts_calc.label = label + '/ts'
             opt_ts_calc.calculate(ts)
-            r_e = read_gaussian_thermal(label + '/r')
-            p_e = read_gaussian_thermal(label + '/p')
-            ts_e = read_gaussian_thermal(label + '/ts')
+            r_e = read_gaussian_thermal(label + '/r.log')
+            p_e = read_gaussian_thermal(label + '/p.log')
+            ts_e = read_gaussian_thermal(label + '/ts.log')
             delta_G = (p_e - r_e) * 627.509
             delta_G_TS = (ts_e - r_e) * 627.509
             self.db.update(id=id_, delta_G=delta_G, delta_G_TS=delta_G_TS, neb_label=label)
