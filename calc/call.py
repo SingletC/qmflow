@@ -180,11 +180,14 @@ class SubmitKineticViaAndromeda():
             scale = 0.97
             label = get_random_string()
             r_mol, p_mol = get_r_p_from_smiles(canonical_smiles)
-            pm7_opt = Gaussian(method=f'opt(loose) PM7 IOP(2/9=2000) ', nprocshared=1,
+            pm7_opt = Gaussian(method=f'opt(loose) PM7 IOP(2/9=2000) MaxCycles=9999 ', nprocshared=1,
                                output_type='N',
                                mem='1GB', label=label + "/pm7")
-            pm7_opt.calculate(r_mol)
-            pm7_opt.calculate(p_mol)
+            try:
+                pm7_opt.calculate(r_mol)
+                pm7_opt.calculate(p_mol)
+            except Exception as e:
+                print(e)
             neb = OrcaNEB('M062X cc-pvdz',label=label)
             neb.run_neb(r_mol, p_mol)
             r_mol = neb.get_reactant()
