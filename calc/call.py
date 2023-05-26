@@ -180,7 +180,7 @@ class SubmitKineticViaAndromeda():
             scale = 0.97
             label = get_random_string()
             r_mol, p_mol = get_r_p_from_smiles(canonical_smiles)
-            pm7_opt = Gaussian(method=f'opt(loose) PM7 IOP(2/9=2000) MaxCycles=9999 ', nprocshared=1,
+            pm7_opt = Gaussian(method=f'opt(loose,MaxCycles=9999 ) PM7 IOP(2/9=2000) ', nprocshared=1,
                                output_type='N',
                                mem='1GB', label=label + "/pm7")
             try:
