@@ -23,7 +23,7 @@ from flow.operator import ASEOperator
 from flow.pipe import Pipe
 from web.dashboard.pages.utils import gen_NTO
 
-
+current_dir = pathlib.Path(__file__).parent.absolute()
 class SubmitJobProtocol(Protocol):
 
     def submit(self, atoms: Atoms, id_) -> bool:
@@ -198,7 +198,7 @@ class SubmitKineticViaAndromeda():
                                 , nprocshared=os.getenv('GAUSSIAN_N'),
                                 output_type='N',
                                 mem=os.getenv('GAUSSIAN_M'),
-                                basisfile='calc/MG3S.gbs')
+                                basisfile=current_dir / 'MG3S.gbs')
             opt_calc.command = os.getenv('GAUSSIAN_CMD')
             opt_calc.label = label + '/r'
             opt_calc.calculate(r_mol)
@@ -209,7 +209,7 @@ class SubmitKineticViaAndromeda():
                                    , nprocshared=os.getenv('GAUSSIAN_N'),
                                    output_type='N',
                                    mem=os.getenv('GAUSSIAN_M'),
-                                   basisfile='calc/MG3S.gbs')
+                                   basisfile=current_dir / 'MG3S.gbs')
             opt_ts_calc.command = os.getenv('GAUSSIAN_CMD')
             opt_ts_calc.label = label + '/ts'
             opt_ts_calc.calculate(ts)
