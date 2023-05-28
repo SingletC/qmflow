@@ -17,6 +17,7 @@ module load orca
 export job=orca
 export RSH_COMMAND="/usr/bin/ssh -x"
 export scratchlocation=/dev/shm/
+export ORCA_SCRDIR=$scratchlocation
 tdir=$(mktemp -d $scratchlocation//orcajob__$SLURM_JOB_ID-XXXX)
 cp  $SLURM_SUBMIT_DIR/*.inp $tdir/
 
