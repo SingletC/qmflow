@@ -6,10 +6,10 @@ from ase.io import read
 
 class OrcaNEB:
     batch = """#!/bin/bash
-#SBATCH -t 50:00:00
-#SBATCH --mem 200G
+#SBATCH -t 80:00:00
+#SBATCH --mem 100G
 #SBATCH -p full_nodes64,full_nodes48,partial_nodes
-#SBATCH -n 64
+#SBATCH -n 24
 #SBATCH -N 1
 ulimit -s unlimited
 module purge
@@ -33,7 +33,7 @@ rm $tdir/ -rf
 
     def __init__(self, method, label='orca_temp', srun_command=None):
         self.inp = f"""!{method} NEB-TS
-%PAL NPROCS 64 END
+%PAL NPROCS 24 END
 %NEB NEB_END_XYZFILE "init.xyz"
 preopt true
 NImages 8
