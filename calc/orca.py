@@ -16,7 +16,7 @@ module purge
 module load orca
 export job=orca
 export RSH_COMMAND="/usr/bin/ssh -x"
-export scratchlocation=/dev/shm/
+export scratchlocation=/local/
 export ORCA_SCRDIR=$scratchlocation
 tdir=$(mktemp -d $scratchlocation//orcajob__$SLURM_JOB_ID-XXXX)
 cp  $SLURM_SUBMIT_DIR/*.inp $tdir/
@@ -34,6 +34,7 @@ rm $tdir/ -rf
     def __init__(self, method, label='orca_temp', srun_command=None):
         self.inp = f"""!{method} NEB-TS
 %PAL NPROCS 24 END
+%maxcore 3000
 %NEB NEB_END_XYZFILE "init.xyz"
 preopt true
 NImages 8
