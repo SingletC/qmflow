@@ -176,9 +176,9 @@ class SubmitKineticViaAndromeda():
     @limits(calls=4, period=60)
     def submit(self, canonical_smiles: str, id_: int) -> bool:
         try:
-            method = 'M062X';
+            method = 'M062X'
             scale = 0.97
-            label = self.db.get(id=id_).get['neb_label'] or get_random_string()
+            label = self.db.get(id=id_).get('neb_label') or get_random_string()
             r_mol, p_mol = get_r_p_from_smiles(canonical_smiles)
             pm7_opt = Gaussian(method=f'opt(loose,MaxCycles=9999 ) PM7 IOP(2/9=2000) ', nprocshared=1,
                                output_type='N',
