@@ -179,6 +179,7 @@ class SubmitKineticViaAndromeda():
             method = 'M062X'
             scale = 0.97
             label = self.db.get(id=id_).get('neb_label') or get_random_string()
+            self.db.update(id=id_, neb_label=label)
             r_mol, p_mol = get_r_p_from_smiles(canonical_smiles)
             pm7_opt = Gaussian(method=f'opt(loose,MaxCycles=9999 ) PM7 IOP(2/9=2000) ', nprocshared=1,
                                output_type='N',
