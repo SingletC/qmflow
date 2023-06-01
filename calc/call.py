@@ -178,7 +178,7 @@ class SubmitKineticViaAndromeda():
         try:
             method = 'M062X';
             scale = 0.97
-            label = get_random_string()
+            label = self.db.get(id=id_).get['neb_label'] or get_random_string()
             r_mol, p_mol = get_r_p_from_smiles(canonical_smiles)
             pm7_opt = Gaussian(method=f'opt(loose,MaxCycles=9999 ) PM7 IOP(2/9=2000) ', nprocshared=1,
                                output_type='N',
@@ -189,10 +189,13 @@ class SubmitKineticViaAndromeda():
             except Exception as e:
                 print(e)
             neb = OrcaNEB('M062X cc-pvdz',label=label)
-            neb.run_neb(r_mol, p_mol)
+            try:
+                ts = neb.get_ts()
+            except Exception as e:
+                neb.run_neb(r_mol, p_mol)
+                ts = neb.get_ts()
             r_mol = neb.get_reactant()
             p_mol = neb.get_product()
-            ts = neb.get_ts()
             opt_calc = Gaussian(method=f'{method} opt Integral(Grid=SuperFine)'
                                        f'scale={scale} scrf(smd,solvent=cyclohexane) IOp(2/9=2000) freq'
                                 , nprocshared=os.getenv('GAUSSIAN_N'),
