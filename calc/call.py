@@ -197,8 +197,8 @@ class SubmitKineticViaAndromeda():
                 ts = neb.get_ts()
             r_mol = neb.get_reactant()
             p_mol = neb.get_product()
-            opt_calc = Gaussian(method=f'{method} opt Integral(Grid=SuperFine)'
-                                       f'scale={scale} scrf(smd,solvent=cyclohexane) IOp(2/9=2000) freq'
+            opt_calc = Gaussian(method=f'{method} opt'
+                                       f'scale={scale} IOp(2/9=2000) freq'
                                 , nprocshared=os.getenv('GAUSSIAN_N'),
                                 output_type='N',
                                 mem=os.getenv('GAUSSIAN_M'),
@@ -208,8 +208,8 @@ class SubmitKineticViaAndromeda():
             opt_calc.calculate(r_mol)
             opt_calc.label = label + '/p'
             opt_calc.calculate(p_mol)
-            opt_ts_calc = Gaussian(method=f'{method} opt(ts,calcfc,noeig) Integral(Grid=SuperFine)'
-                                          f'scale={scale} scrf(smd,solvent=cyclohexane) IOp(2/9=2000) freq'
+            opt_ts_calc = Gaussian(method=f'{method} opt(ts,calcfc,noeig)'
+                                          f'scale={scale} IOp(2/9=2000) freq'
                                    , nprocshared=os.getenv('GAUSSIAN_N'),
                                    output_type='N',
                                    mem=os.getenv('GAUSSIAN_M'),
