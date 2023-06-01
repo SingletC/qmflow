@@ -198,7 +198,7 @@ class SubmitKineticViaAndromeda():
                                 , nprocshared=os.getenv('GAUSSIAN_N'),
                                 output_type='N',
                                 mem=os.getenv('GAUSSIAN_M'),
-                                basisfile=current_dir / 'MG3S.gbs')
+                                basisfile=str(current_dir / 'MG3S.gbs'))
             opt_calc.command = os.getenv('GAUSSIAN_CMD')
             opt_calc.label = label + '/r'
             opt_calc.calculate(r_mol)
@@ -209,7 +209,7 @@ class SubmitKineticViaAndromeda():
                                    , nprocshared=os.getenv('GAUSSIAN_N'),
                                    output_type='N',
                                    mem=os.getenv('GAUSSIAN_M'),
-                                   basisfile=current_dir / 'MG3S.gbs')
+                                   basisfile=(str(current_dir / 'MG3S.gbs')))
             opt_ts_calc.command = os.getenv('GAUSSIAN_CMD')
             opt_ts_calc.label = label + '/ts'
             opt_ts_calc.calculate(ts)
