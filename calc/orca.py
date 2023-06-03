@@ -8,7 +8,7 @@ class OrcaNEB:
     batch = """#!/bin/bash
 #SBATCH -t 80:00:00
 #SBATCH --mem 100G
-#SBATCH -p full_nodes64,full_nodes48,partial_nodes
+#SBATCH -p exclusive,shared
 #SBATCH -n 24
 #SBATCH -N 1
 ulimit -s unlimited
