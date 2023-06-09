@@ -189,7 +189,7 @@ class SubmitKineticViaAndromeda():
                 pm7_opt.calculate(p_mol)
             except Exception as e:
                 print(e)
-            neb = OrcaNEB('M062X cc-pvdz',label=label)
+            neb = OrcaNEB('M062X 6-311++G(d,p)',label=label)
             try:
                 ts = neb.get_ts()
             except Exception as e:
