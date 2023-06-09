@@ -198,7 +198,7 @@ class SubmitKineticViaAndromeda():
             r_mol = neb.get_reactant()
             p_mol = neb.get_product()
             opt_calc = Gaussian(method=f'{method} opt'
-                                       f'scale={scale} IOp(2/9=2000) freq'
+                                       f' scale={scale} IOp(2/9=2000) freq'
                                 , nprocshared=os.getenv('GAUSSIAN_N'),
                                 output_type='N',
                                 mem=os.getenv('GAUSSIAN_M'),
@@ -209,7 +209,7 @@ class SubmitKineticViaAndromeda():
             opt_calc.label = label + '/p'
             opt_calc.calculate(p_mol)
             opt_ts_calc = Gaussian(method=f'{method} opt(ts,calcfc,noeig)'
-                                          f'scale={scale} IOp(2/9=2000) freq'
+                                          f' scale={scale} IOp(2/9=2000) freq'
                                    , nprocshared=os.getenv('GAUSSIAN_N'),
                                    output_type='N',
                                    mem=os.getenv('GAUSSIAN_M'),
