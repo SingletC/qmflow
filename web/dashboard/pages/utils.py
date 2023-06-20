@@ -39,9 +39,11 @@ def split_filter_part(filter_part):
 
 
 def gen_fchk(chk):
-    if not os.path.exists(chk.replace('.chk','.fchk')):
+    if not os.path.exists(chk.replace('.chk', '.fchk')):
         subprocess.run(["formchk", f'{chk}'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-def gen_cube(fchk,mo):
+
+
+def gen_cube(fchk, mo):
     filename = f'{fchk}{mo}.cube'
     if os.path.exists(filename):
         return True
@@ -52,11 +54,12 @@ def gen_cube(fchk,mo):
     2'''
     input_ = bytes(input_, 'utf-8')
     subprocess.run(["Multiwfn", f'{fchk}'], input=input_, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    shutil.move('MOvalue.cub',filename)
+    shutil.move('MOvalue.cub', filename)
     return True
 
-def gen_hole_electron_cube(fchk,value):
-    keys = ['Sm index','Sr index','Ghost-hunter index']
+
+def gen_hole_electron_cube(fchk, value):
+    keys = ['Sm index', 'Sr index', 'Ghost-hunter index']
     if not value:
         return ''
     filename = f'{fchk}{value}EH.cube'
@@ -65,7 +68,7 @@ def gen_hole_electron_cube(fchk,value):
             return text_file.read()
     input_ = f'''18
     1
-    {fchk.replace('.fchk','.log')}
+    {fchk.replace('.fchk', '.log')}
     {value}
     1 
     2
@@ -73,19 +76,21 @@ def gen_hole_electron_cube(fchk,value):
     13
     '''
     # input_ = bytes(input_, 'utf-8')
-    r = subprocess.run(["Multiwfn", f'{fchk}'], input=input_, capture_output=True, text= True)
-    out ='\n'
+    r = subprocess.run(["Multiwfn", f'{fchk}'], input=input_, capture_output=True, text=True)
+    out = '\n'
     for i in r.stdout.split('\n'):
         for key in keys:
             if key in i:
                 out += i
-                out +='\n'
+                out += '\n'
     with open(filename + '.txt', "w") as text_file:
         text_file.write(out)
-    shutil.move('transdens.cub',filename)
+    shutil.move('transdens.cub', filename)
     return out
-def gen_chargeDiff(fchk,value):
-    keys = ['Sm index','Sr index','Ghost-hunter index']
+
+
+def gen_chargeDiff(fchk, value):
+    keys = ['Sm index', 'Sr index', 'Ghost-hunter index']
     if not value:
         return ''
     filename = f'{fchk}{value}CDD.cube'
@@ -94,7 +99,7 @@ def gen_chargeDiff(fchk,value):
             return text_file.read()
     input_ = f'''18
     1
-    {fchk.replace('.fchk','.log')}
+    {fchk.replace('.fchk', '.log')}
     {value}
     1 
     2
@@ -102,29 +107,30 @@ def gen_chargeDiff(fchk,value):
     15
     '''
     # input_ = bytes(input_, 'utf-8')
-    r = subprocess.run(["Multiwfn", f'{fchk}'], input=input_, capture_output=True, text= True)
-    out ='\n'
+    r = subprocess.run(["Multiwfn", f'{fchk}'], input=input_, capture_output=True, text=True)
+    out = '\n'
     for i in r.stdout.split('\n'):
         for key in keys:
             if key in i:
                 out += i
-                out +='\n'
+                out += '\n'
     with open(filename + '.txt', "w") as text_file:
         text_file.write(out)
-    shutil.move('CDD.cub',filename)
+    shutil.move('CDD.cub', filename)
     return out
 
-def gen_NTO(fchk,value):
+
+def gen_NTO(fchk, value):
     filename = f'{fchk}{value}NTO.mwfn'
     input_ = f'''18
     6
-    {fchk.replace('.fchk','.log')}
+    {fchk.replace('.fchk', '.log')}
     {value}
     3
     {filename}
     '''
     # input_ = bytes(input_, 'utf-8')
-    subprocess.run(["Multiwfn", f'{fchk}'], input=input_, capture_output=True, text= True)
+    subprocess.run(["Multiwfn", f'{fchk}'], input=input_, capture_output=True, text=True)
 
     input_ = f'''0
         '''
@@ -133,7 +139,7 @@ def gen_NTO(fchk,value):
     for i in r.stdout.split('\n'):
         i = i.replace('Note:', '     ')
         if i[7:14] == 'Orbital':
-            orbitals.update({i.split()[1]:i.split()[5]})
+            orbitals.update({i.split()[1]: i.split()[5]})
 
     input_ = f'''8
         1
@@ -145,8 +151,22 @@ def gen_NTO(fchk,value):
         if i == " Composition of different types of shells (%):":
             composition = r.stdout.split('\n')[r.stdout.split('\n').index(i) + 1].split()[1::2]
     composition = [float(i) for i in composition]
-    return orbitals , composition
+    return orbitals, composition
 
+
+def gen_NMR(log, elements='H'):
+    input_ = f'''11
+    7
+    6
+    {elements}
+    7
+    1
+    g
+    2
+    '''
+    # input_ = bytes(input_, 'utf-8')
+    subprocess.run(["Multiwfn", f'{log}'], input=input_, capture_output=True, text=True)
+    os.rename('NMR_curve.txt', f'{log}{elements}NMR.txt')
 
 
 ATOM_COLORS = {
