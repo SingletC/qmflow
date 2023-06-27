@@ -22,7 +22,7 @@ import plotly.graph_objects as go  # or plotly.express as px
 from plotly.subplots import make_subplots
 
 from calc.call import determine_nto_type
-from calc.utils import gen_uv, get_orbital_text, ase_atoms_to_dash_data, smiles_2_ase, smiles_2_matched_atoms, BNcycle
+from calc.utils import gen_uv, get_orbital_text, ase_atoms_to_dash_data, determine_bncycle_index
 from web.dashboard.pages.utils import gen_fchk, gen_cube, gen_chargeDiff, gen_NTO, ATOM_COLORS
 
 Molecular_Orbital = 'Molecular Orbital'
@@ -228,7 +228,6 @@ def func(iso_type, value, type2, iso, smiles):
             '\n', '\n\n'), []
     if iso_type == Natural_Transition_Orbital:
         dict_, orbital_compo,atoms_percent = gen_NTO(fchk, value)
-        match_idx = smiles_2_matched_atoms(smiles,BNcycle)
         opts = [{"label": f'MO {i[0]} with {float(i[1]) * 100:0.2f}% contribution', "value": i[0]} for i in
                 dict_.items()]
         db_entry = smiles_2_db_entry(smiles)
@@ -248,8 +247,8 @@ def func(iso_type, value, type2, iso, smiles):
                 'positiveVolumetricColor': 'red',
                 'negativeVolumetricColor': 'blue',
                 }, f'current orbital is NTO: excitation state {value} Orbital {type2}                   \n ' \
-                   f'excited orbital_composition { {type_ : val for type_, val in zip("spdfg",orbital_compo)} } \n'\
-            f'sum of NTO excited orbital_composition within BN ring:{atoms_percent[list(match_idx)].sum()} ', opts
+                   f'excited orbital_composition { {type_ : val for type_, val in zip("spdfg",orbital_compo)} }' \
+                   f'NTO excited from BN ring{determine_bncycle_index(file)}', opts
 
 
 @dash.callback(

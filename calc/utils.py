@@ -1,25 +1,19 @@
 import base64
+import io
+import subprocess
 from typing import Tuple, Optional
 
+import numpy as np
+import pandas as pd
 from ase import neighborlist
-from rdkit import Chem
-from rdkit.Chem import AllChem, Draw
 from ase.atoms import Atoms
 from ase.io import read
-import io
-from ase.visualize import view
-from ase.calculators.gaussian import Gaussian, GaussianOptimizer
-import subprocess
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import uuid
-
-from rdkit.Chem.rdchem import Mol
+from madgp.geoopt.internal_coord.utils import get_conn
+from rdkit import Chem
+from rdkit.Chem import AllChem, Draw
 
 from web.dashboard.pages.utils import gen_NTO
 
-BNcycle = 'B1C=CC=CN1'
 
 def smiles_2_ase(smiles: str) -> Atoms:
     a = Chem.MolFromSmiles(smiles)
@@ -31,16 +25,47 @@ def smiles_2_ase(smiles: str) -> Atoms:
     return ase_atoms
 
 
-def smiles_2_matched_atoms(smiles: str, sub_smiles: str) -> Tuple[Optional[int]]:
-    mol = Chem.MolFromSmiles(smiles)
-    substructure = Chem.MolFromSmarts(sub_smiles)
-    return mol.GetSubstructMatch(substructure)
+def get_bn_idx(mol):
+    conn = get_conn(mol)
+    z_ls = mol.get_atomic_numbers()
+    bn = [5, 7, 6, 6, 6, 6]
+    bn_copy = bn.copy()
+    start = True
+    idx_found = []
+    wrong_attep = [[] for _ in bn]
+    while bn_copy:
+        for i, z in enumerate(z_ls):
+            # print(i)
+            if start:
+                pass
+            elif not conn[idx_found[-1], i] or i in idx_found or i in wrong_attep[len(idx_found)] or (
+                    len(idx_found) == 5 and not conn[idx_found[0], i]):
+                continue
+            if z == bn_copy[0]:
+                if start:
+                    start = False
+                idx_found += [i]
+                bn_copy.remove(z)
+                break
+        # dead loop
+        else:
+            wrong_pos = len(idx_found) - 1
+            bn_copy.insert(0, bn[wrong_pos])
+            wrong_attep[wrong_pos] += [idx_found.pop()]
 
-def determine_bncycle_index(smiles,label) -> float:
+    return idx_found
+
+
+
+
+def determine_bncycle_index(label) -> float:
+    label = label.replace('.log', '')
     fchk = f'{label}.fchk'
-    orbitals, composition,atoms_percent = gen_NTO(fchk, 1)
-    match_idx = smiles_2_matched_atoms(smiles, BNcycle)
+    orbitals, composition, atoms_percent = gen_NTO(fchk, 1)
+    mol = read(f'{label}.log')
+    match_idx = get_bn_idx(mol)
     return atoms_percent[list(match_idx)].sum()
+
 
 def read_td_dft(log='TD-DFT/0.log', t=0.1):
     with open(log, mode='r') as file:

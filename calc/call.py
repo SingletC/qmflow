@@ -16,7 +16,7 @@ from rdkit.Chem import AllChem
 
 from calc.orca import OrcaNEB
 from calc.rdkit_rxn import get_r_p_from_smiles
-from calc.utils import read_td_dft, smiles_2_ase, smiles_2_base64png, read_gaussian_thermal, smiles_2_matched_atoms, \
+from calc.utils import read_td_dft, smiles_2_ase, smiles_2_base64png, read_gaussian_thermal, get_bn_idx, \
     determine_bncycle_index
 from ratelimit import limits, sleep_and_retry, RateLimitException
 
