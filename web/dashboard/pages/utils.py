@@ -3,6 +3,8 @@ import pathlib
 import shutil
 import subprocess
 
+import numpy as np
+
 operators = [['ge ', '>='],
              ['le ', '<='],
              ['lt ', '<'],
@@ -147,11 +149,14 @@ def gen_NTO(fchk, value):
         '''
     r = subprocess.run(["Multiwfn", f'{filename}'], input=input_, capture_output=True, text=True)
     composition = []
+    atom_percent = []
     for i in r.stdout.split('\n'):
         if i == " Composition of different types of shells (%):":
             composition = r.stdout.split('\n')[r.stdout.split('\n').index(i) + 1].split()[1::2]
+        if i.startswith(' Atom '):
+            atom_percent.append(float(i.split()[-2]))
     composition = [float(i) for i in composition]
-    return orbitals, composition
+    return orbitals, composition, np.array(atom_percent)
 
 
 def gen_NMR(log, elements='H'):

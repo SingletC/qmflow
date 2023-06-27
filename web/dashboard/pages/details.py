@@ -6,8 +6,7 @@ from typing import Union
 import ase.db
 import dash
 import dash_bio
-from dash import html, dcc, callback, Input, Output, State
-from dash.dcc import send_bytes
+from dash import html, dcc, Input, Output, State
 from dash_bio.utils import create_mol3d_style
 
 from rdkit import Chem
@@ -17,33 +16,19 @@ from ase.io import read
 import io
 from ase.visualize import view
 from ase.calculators.gaussian import Gaussian, GaussianOptimizer
-import subprocess
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+
 import uuid
 import plotly.graph_objects as go  # or plotly.express as px
-import plotly.express as px
 from plotly.subplots import make_subplots
 
 from calc.call import determine_nto_type
-from calc.utils import gen_uv, get_orbital_text, ase_atoms_to_dash_data
-from web.dashboard.pages.utils import gen_fchk, gen_cube, gen_hole_electron_cube, gen_chargeDiff, gen_NTO, ATOM_COLORS
+from calc.utils import gen_uv, get_orbital_text, ase_atoms_to_dash_data, smiles_2_ase, smiles_2_matched_atoms, BNcycle
+from web.dashboard.pages.utils import gen_fchk, gen_cube, gen_chargeDiff, gen_NTO, ATOM_COLORS
 
 Molecular_Orbital = 'Molecular Orbital'
 # TransitionDensity= 'Transition Density of Excitation State'
 Natural_Transition_Orbital = 'Natural Transition Orbital'
 ChargeDiff = 'Charge Density Difference'
-
-
-def smiles_2_ase(smiles: str) -> Atoms:
-    a = Chem.MolFromSmiles(smiles)
-    a = Chem.AddHs(a)
-    AllChem.EmbedMolecule(a)
-    AllChem.MMFFOptimizeMolecule(a)
-    string = io.StringIO(Chem.MolToXYZBlock(a))
-    ase_atoms = read(string, format='xyz')
-    return ase_atoms
 
 
 def quick_view(atoms: Atoms):
@@ -242,7 +227,8 @@ def func(iso_type, value, type2, iso, smiles):
                    f'electron density red(increase) blue(decrease)\n' + txt.replace(
             '\n', '\n\n'), []
     if iso_type == Natural_Transition_Orbital:
-        dict_, orbital_compo = gen_NTO(fchk, value)
+        dict_, orbital_compo,atoms_percent = gen_NTO(fchk, value)
+        match_idx = smiles_2_matched_atoms(smiles,BNcycle)
         opts = [{"label": f'MO {i[0]} with {float(i[1]) * 100:0.2f}% contribution', "value": i[0]} for i in
                 dict_.items()]
         db_entry = smiles_2_db_entry(smiles)
@@ -261,8 +247,9 @@ def func(iso_type, value, type2, iso, smiles):
                 'opacity': 0.95,
                 'positiveVolumetricColor': 'red',
                 'negativeVolumetricColor': 'blue',
-                }, f'current orbital is NTO: excitation state {value} Orbital {type2}                    ' \
-                   f'excited orbital_composition { {type_ : val for type_, val in zip("spdfg",orbital_compo)} } ', opts
+                }, f'current orbital is NTO: excitation state {value} Orbital {type2}                   \n ' \
+                   f'excited orbital_composition { {type_ : val for type_, val in zip("spdfg",orbital_compo)} } \n'\
+            f'sum of NTO excited orbital_composition within BN ring:{atoms_percent[list(match_idx)].sum()} ', opts
 
 
 @dash.callback(

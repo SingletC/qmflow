@@ -11,7 +11,7 @@ def create_dataframe(db: ase.db.core.Database, selection=None, columns=None):
     """Create Pandas DataFrame from database """
     if columns is None:
         columns = ['formula', 'name', 'osc_str', 'lambda_', 'ctime', 'reaction', 'id', 'nto_type', 'note','delta_G',
-                   'delta_G_TS']
+                   'delta_G_TS','bn_index']
     query = list(db.select(selection=selection))
     table = []
     for i in query:

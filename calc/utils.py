@@ -1,4 +1,5 @@
 import base64
+from typing import Tuple, Optional
 
 from ase import neighborlist
 from rdkit import Chem
@@ -16,6 +17,9 @@ import uuid
 
 from rdkit.Chem.rdchem import Mol
 
+from web.dashboard.pages.utils import gen_NTO
+
+BNcycle = 'B1C=CC=CN1'
 
 def smiles_2_ase(smiles: str) -> Atoms:
     a = Chem.MolFromSmiles(smiles)
@@ -26,6 +30,17 @@ def smiles_2_ase(smiles: str) -> Atoms:
     ase_atoms = read(string, format='xyz')
     return ase_atoms
 
+
+def smiles_2_matched_atoms(smiles: str, sub_smiles: str) -> Tuple[Optional[int]]:
+    mol = Chem.MolFromSmiles(smiles)
+    substructure = Chem.MolFromSmarts(sub_smiles)
+    return mol.GetSubstructMatch(substructure)
+
+def determine_bncycle_index(smiles,label) -> float:
+    fchk = f'{label}.fchk'
+    orbitals, composition,atoms_percent = gen_NTO(fchk, 1)
+    match_idx = smiles_2_matched_atoms(smiles, BNcycle)
+    return atoms_percent[list(match_idx)].sum()
 
 def read_td_dft(log='TD-DFT/0.log', t=0.1):
     with open(log, mode='r') as file:
@@ -59,14 +74,15 @@ def get_linear_fit(df, func):
     return r
 
 
-
 def smiles_2_base64png(smiles: str) -> str:
     mol_rdkit = Chem.MolFromSmiles(smiles)
-    img = Draw.MolToImage(mol_rdkit,size=(250,250))
+    img = Draw.MolToImage(mol_rdkit, size=(250, 250))
     buffer = io.BytesIO()
     img.save(buffer, format="png")  # Enregistre l'image dans le buffer
     myimage = buffer.getvalue()
     return base64.b64encode(myimage).decode()
+
+
 def get_orbital_text(file):
     text = ''
     with open(file) as f:
@@ -77,10 +93,12 @@ def get_orbital_text(file):
             flag = True
         if ' SavETr:  write IOETrn=' in i:
             flag = False
-        if flag ==True:
+        if flag == True:
             text += i
 
     return text
+
+
 def get_conn(mol: Atoms, cutoff=1):
     """
     get connectivity from molecule
@@ -95,30 +113,35 @@ def get_conn(mol: Atoms, cutoff=1):
     neighborList = neighborlist.NeighborList(cutOff, self_interaction=False, bothways=True, skin=0.0)
     neighborList.update(mol)
     return neighborList.get_connectivity_matrix()
-def generate_bonds(mol:Atoms):
-    conn = get_conn(mol,cutoff=1.2)
+
+
+def generate_bonds(mol: Atoms):
+    conn = get_conn(mol, cutoff=1.2)
     return conn.nonzero()
 
-def ase_atoms_to_dash_data(mol:Atoms):
+
+def ase_atoms_to_dash_data(mol: Atoms):
     atom = []
-    for i,ato in enumerate(mol):
+    for i, ato in enumerate(mol):
         xyz = ato.position
         atom.append({
-                "serial": i,
-                "name": ato.symbol,
-                "elem": ato.symbol,
-                "positions": xyz,
-                "mass_magnitude": 1,
-                "residue_index": 1,
-                "residue_name": 'ALA',
-                "chain": 1,
+            "serial": i,
+            "name": ato.symbol,
+            "elem": ato.symbol,
+            "positions": xyz,
+            "mass_magnitude": 1,
+            "residue_index": 1,
+            "residue_name": 'ALA',
+            "chain": 1,
 
-            })
+        })
     if mol:
         bonds = generate_bonds(mol)
     else:
-        bonds = [[],[]]
-    return {'atoms':atom,'bonds':[  {"atom1_index": i,"atom2_index": j,"bond_order": 1} for i,j in zip(bonds[0],bonds[1])]}
+        bonds = [[], []]
+    return {'atoms': atom,
+            'bonds': [{"atom1_index": i, "atom2_index": j, "bond_order": 1} for i, j in zip(bonds[0], bonds[1])]}
+
 
 def read_gaussian_thermal(log_file):
     try:

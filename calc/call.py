@@ -16,14 +16,18 @@ from rdkit.Chem import AllChem
 
 from calc.orca import OrcaNEB
 from calc.rdkit_rxn import get_r_p_from_smiles
-from calc.utils import read_td_dft, smiles_2_ase, smiles_2_base64png, read_gaussian_thermal
+from calc.utils import read_td_dft, smiles_2_ase, smiles_2_base64png, read_gaussian_thermal, smiles_2_matched_atoms, \
+    determine_bncycle_index
 from ratelimit import limits, sleep_and_retry, RateLimitException
 
 from flow.operator import ASEOperator
 from flow.pipe import Pipe
+from web.dashboard.pages.details import BNcycle
 from web.dashboard.pages.utils import gen_NTO
 
 current_dir = pathlib.Path(__file__).parent.absolute()
+
+
 class SubmitJobProtocol(Protocol):
 
     def submit(self, atoms: Atoms, id_) -> bool:
@@ -57,8 +61,8 @@ def read_td_dft_from_ase(atoms: Atoms) -> dict:
 
 
 def update_db(db: ase.db.core.Database):
-    def inner(id: int, atoms: Atoms, uv: dict, nto_type: int) -> None:
-        db.update(id=id, atoms=atoms, lambda_=uv['lambda'], osc_str=uv['osc_str'], nto_type=nto_type,
+    def inner(id: int, atoms: Atoms, uv: dict, nto_type: int, bn_index: float) -> None:
+        db.update(id=id, atoms=atoms, lambda_=uv['lambda'], osc_str=uv['osc_str'], nto_type=nto_type,bn_index=bn_index,
                   data={'file_path': atoms.calc.label},
                   stage=4)
 
@@ -72,7 +76,7 @@ def generate_formchk(label):
 
 def generate_nto_mwfn(label) -> List:
     fchk = f'{label}.fchk'
-    orbitals, composition = gen_NTO(fchk, 1)
+    orbitals, composition, atoms_percent = gen_NTO(fchk, 1)
     return composition
 
 
@@ -126,7 +130,7 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
                         {TDDFT_Ase(td_calc).run: 'atoms'},
                         {read_td_dft_from_ase: 'uv'},
                         {generate_formchk: None},
-                        {generate_nto_mwfn: 'composition'},
+                        {determine_bncycle_index: 'bn_index'},
                         {determine_nto_type: 'nto_type'},
                         {update_db_func: None},
                         update=True,
@@ -189,7 +193,7 @@ class SubmitKineticViaAndromeda():
                 pm7_opt.calculate(p_mol)
             except Exception as e:
                 print(e)
-            neb = OrcaNEB('M062X 6-311++G(d,p)',label=label)
+            neb = OrcaNEB('M062X 6-311++G(d,p)', label=label)
             try:
                 ts = neb.get_ts()
             except Exception as e:
