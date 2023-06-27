@@ -171,6 +171,7 @@ layout = html.Div(
                 {"name": 'note', "id": 'note', "deletable": True, 'editable': True, 'type': 'text'},
                 {"name": 'delta_G', "id": 'delta_G', "deletable": True},
                 {"name": 'deltaG_TS', "id": 'delta_G_TS', "deletable": True},
+                {"name": 'bn_index', "id": 'bn_index', "deletable": True},
             ],
             markdown_options={'link_target': '_blank', "html": True},
             data=None,
