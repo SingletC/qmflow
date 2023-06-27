@@ -144,7 +144,7 @@ def gen_NTO(fchk, value):
             orbitals.update({i.split()[1]: i.split()[5]})
 
     input_ = f'''8
-        3
+        1
         l
         '''
     r = subprocess.run(["Multiwfn", f'{filename}'], input=input_, capture_output=True, text=True)
@@ -154,7 +154,7 @@ def gen_NTO(fchk, value):
         if i == " Composition of different types of shells (%):":
             composition = r.stdout.split('\n')[r.stdout.split('\n').index(i) + 1].split()[1::2]
         if i.startswith(' Atom '):
-            atom_percent.append(float(i.split()[-2]))
+            atom_percent.append(abs(float(i.split()[-2])))
     composition = [float(i) for i in composition]
     return orbitals, composition, np.array(atom_percent)
 
