@@ -40,7 +40,7 @@ def determine_bncycle_index(smiles,label) -> float:
     fchk = f'{label}.fchk'
     orbitals, composition,atoms_percent = gen_NTO(fchk, 1)
     match_idx = smiles_2_matched_atoms(smiles, BNcycle)
-    return atoms_percent[list(match_idx)].sum()/atoms_percent.sum()
+    return atoms_percent[list(match_idx)].sum()
 
 def read_td_dft(log='TD-DFT/0.log', t=0.1):
     with open(log, mode='r') as file:

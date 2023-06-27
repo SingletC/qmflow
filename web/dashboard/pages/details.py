@@ -249,7 +249,7 @@ def func(iso_type, value, type2, iso, smiles):
                 'negativeVolumetricColor': 'blue',
                 }, f'current orbital is NTO: excitation state {value} Orbital {type2}                   \n ' \
                    f'excited orbital_composition { {type_ : val for type_, val in zip("spdfg",orbital_compo)} } \n'\
-            f'sum of NTO excited orbital_composition within BN ring:{atoms_percent[list(match_idx)].sum()/atoms_percent.sum()} ', opts
+            f'sum of NTO excited orbital_composition within BN ring:{atoms_percent[list(match_idx)].sum()} ', opts
 
 
 @dash.callback(
