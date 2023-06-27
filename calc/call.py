@@ -22,7 +22,6 @@ from ratelimit import limits, sleep_and_retry, RateLimitException
 
 from flow.operator import ASEOperator
 from flow.pipe import Pipe
-from web.dashboard.pages.details import BNcycle
 from web.dashboard.pages.utils import gen_NTO
 
 current_dir = pathlib.Path(__file__).parent.absolute()
