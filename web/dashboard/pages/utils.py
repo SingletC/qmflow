@@ -144,7 +144,7 @@ def gen_NTO(fchk, value):
             orbitals.update({i.split()[1]: i.split()[5]})
 
     input_ = f'''8
-        1
+        3
         l
         '''
     r = subprocess.run(["Multiwfn", f'{filename}'], input=input_, capture_output=True, text=True)
