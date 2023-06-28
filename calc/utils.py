@@ -8,7 +8,6 @@ import pandas as pd
 from ase import neighborlist
 from ase.atoms import Atoms
 from ase.io import read
-from madgp.geoopt.internal_coord.utils import get_conn
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw
 
@@ -26,7 +25,7 @@ def smiles_2_ase(smiles: str) -> Atoms:
 
 
 def get_bn_idx(mol):
-    conn = get_conn(mol)
+    conn = get_conn(mol, 1.2)
     z_ls = mol.get_atomic_numbers()
     bn = [5, 7, 6, 6, 6, 6]
     bn_copy = bn.copy()
@@ -124,7 +123,7 @@ def get_orbital_text(file):
     return text
 
 
-def get_conn(mol: Atoms, cutoff=1):
+def get_conn(mol: Atoms, cutoff=1.2):
     """
     get connectivity from molecule
     Args:
