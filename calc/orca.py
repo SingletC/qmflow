@@ -7,7 +7,7 @@ from ase.io import read
 class OrcaNEB:
     batch = """#!/bin/bash
 #SBATCH -t 80:00:00
-#SBATCH --mem 160G
+#SBATCH --mem 150G
 #SBATCH -p exclusive
 #SBATCH -n 48
 #SBATCH -N 1
@@ -25,7 +25,8 @@ cp  $SLURM_SUBMIT_DIR/*.gbw $tdir/
 
 cp  $SLURM_SUBMIT_DIR/*.xyz $tdir/
 cd $tdir
-/usr/public/orca/orca_5_0_1_linux_x86-64_shared_openmpi411///orca $job.inp > $job.out
+command_path=$(which orca)
+$command_path $job.inp > $job.out
 cp $tdir/*.xyz $SLURM_SUBMIT_DIR
 cp $tdir/*.out $SLURM_SUBMIT_DIR
 rm $tdir/ -rf
