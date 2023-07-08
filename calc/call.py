@@ -142,7 +142,12 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
                         )
             pipe.run({'id': id_,
                       'atoms': atoms,
-                      'label': label})
+                      'label': label,
+                      'uv':None,
+                      'bn_index':None,
+                      'nto_type':None,
+
+                      })
         except RateLimitException:
             raise RateLimitException
         except FileNotFoundError:
