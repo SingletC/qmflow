@@ -114,5 +114,5 @@ class Pipe:
         for process in self.processes[stage:]:
             in_ = process.process(in_)
             self.counter += 1
-            in_['stage'] = self.counter
+            in_.results['stage'] = self.counter
         return in_
