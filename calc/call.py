@@ -60,8 +60,8 @@ def read_td_dft_from_ase(atoms: Atoms) -> dict:
 
 
 def update_db(db: ase.db.core.Database):
-    def inner(id: int, atoms: Atoms, stage: int, uv: dict = None, nto_type: int = None,
-              bn_index: float = None, ) -> None:
+    def inner(id: int, atoms: Atoms, stage: int, uv: dict = None, nto_type: int = 0,
+              bn_index: float = 0.0, ) -> None:
         if not uv:
             uv = {'osc_str': 0, 'lambda': 0}
         db.update(id=id, atoms=atoms, lambda_=uv['lambda'], osc_str=uv['osc_str'], nto_type=nto_type, bn_index=bn_index,
@@ -127,7 +127,7 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
             update_db_func = update_db(self.db)
             stage = self.db.get(id=id_).get('stage', 0)
             label = self.db.get(id=id_).get('file_path') or get_random_string()
-            atoms = atoms.copy() if stage == 0 else read(label+'.log')
+            atoms = atoms.copy() if stage == 0 else read(label + '.log')
             pipe = Pipe({ASEOperator(pm7_opt, pm3_opt).run: 'atoms'},
                         {update_db_func: None},
                         {ASEOperator(opt_calc, opt_calc2).run: 'atoms'},
@@ -143,9 +143,9 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
             pipe.run({'id': id_,
                       'atoms': atoms,
                       'label': label,
-                      'uv':None,
-                      'bn_index':None,
-                      'nto_type':None,
+                      'uv': None,
+                      'bn_index': 0.0,
+                      'nto_type': 0,
 
                       })
         except RateLimitException:
