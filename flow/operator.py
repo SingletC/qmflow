@@ -3,6 +3,7 @@ import traceback
 import ase.calculators.calculator
 import pathlib
 from ase import Atoms
+from ase.io import read
 
 from flow.exception import ProcessError
 
@@ -40,7 +41,10 @@ class ASEOperator:
     def run(self, atoms: Atoms, label: str):
         i = 0
         while i < len(self.calcs):
-            atoms = atoms.copy()
+            try:
+                atoms = read(label+'.log')
+            except Exception as e :
+                atoms = atoms.copy()
             calc = self.calcs[i]
             calc.label = label
             self.setup(calc)
