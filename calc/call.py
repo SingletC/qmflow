@@ -60,10 +60,13 @@ def read_td_dft_from_ase(atoms: Atoms) -> dict:
 
 
 def update_db(db: ase.db.core.Database):
-    def inner(id: int, atoms: Atoms, uv: dict, nto_type: int, bn_index: float) -> None:
-        db.update(id=id, atoms=atoms, lambda_=uv['lambda'], osc_str=uv['osc_str'], nto_type=nto_type,bn_index=bn_index,
+    def inner(id: int, atoms: Atoms, stage: int, uv: dict = None, nto_type: int = None,
+              bn_index: float = None, ) -> None:
+        if not uv:
+            uv = {'osc_str': 0, 'lambda': 0}
+        db.update(id=id, atoms=atoms, lambda_=uv['lambda'], osc_str=uv['osc_str'], nto_type=nto_type, bn_index=bn_index,
                   data={'file_path': atoms.calc.label},
-                  stage=4)
+                  stage=stage)
 
     return inner
 
@@ -122,10 +125,13 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
                 mem=os.getenv('GAUSSIAN_M'))
             td_calc.command = os.getenv('GAUSSIAN_CMD')
             update_db_func = update_db(self.db)
-            atoms = atoms.copy()
-            pipe = Pipe({get_random_string: 'label'},
-                        {ASEOperator(pm7_opt, pm3_opt).run: 'atoms'},
+            stage = self.db.get(id=id_).get('stage', 0)
+            label = self.db.get(id=id_).get('file_path') or get_random_string()
+            atoms = atoms.copy() if stage == 0 else read(label+'.log')
+            pipe = Pipe({ASEOperator(pm7_opt, pm3_opt).run: 'atoms'},
+                        {update_db_func: None},
                         {ASEOperator(opt_calc, opt_calc2).run: 'atoms'},
+                        {update_db_func: None},
                         {TDDFT_Ase(td_calc).run: 'atoms'},
                         {read_td_dft_from_ase: 'uv'},
                         {generate_formchk: None},
@@ -135,7 +141,8 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
                         update=True,
                         )
             pipe.run({'id': id_,
-                      'atoms': atoms})
+                      'atoms': atoms,
+                      'label': label})
         except RateLimitException:
             raise RateLimitException
         except FileNotFoundError:

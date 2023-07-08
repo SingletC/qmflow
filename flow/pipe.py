@@ -31,7 +31,7 @@ class Out:
 
 
 class Process:
-    def __init__(self, process_dict: ProcessDict,update=False):
+    def __init__(self, process_dict: ProcessDict, update=False):
         """
 
         Args:
@@ -39,6 +39,7 @@ class Process:
         """
         self.process_dict: Dict[Callable, Union[str, None]] = process_dict
         self.update = update
+
     def type_check(self, in_: Out):
         incoming_type = in_.type
         for func in self.process_dict:
@@ -83,7 +84,7 @@ class Process:
 class Pipe:
     def __init__(self,
                  *args: Union[Process, ProcessDict],
-                 update=False,):
+                 update=False):
         """
 
         Args:
@@ -95,6 +96,7 @@ class Pipe:
         if update:
             for process in self.processes:
                 process.update = True
+        self.counter = 0
     def type_check(self):
         for i, process in enumerate(self.processes[::-1]):
             if not process.type_check(self.processes[i - 2].process(None, True)):
@@ -103,11 +105,14 @@ class Pipe:
         else:
             return True
 
-    def run(self, in_: Union[Out, None, dict] = None, dct: dict = None):
+    def run(self, in_: Union[Out, None, dict] = None, dct: dict = None, stage=0):
+        self.counter = stage
         if type(in_) is dict:
             in_ = Out(in_)
         if in_ is None and type(dct) is dict:
             in_ = Out(dct)
-        for process in self.processes:
+        for process in self.processes[stage:]:
             in_ = process.process(in_)
+            self.counter += 1
+            in_['stage'] = self.counter
         return in_
