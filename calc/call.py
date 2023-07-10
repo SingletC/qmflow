@@ -126,7 +126,7 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
             td_calc.command = os.getenv('GAUSSIAN_CMD')
             update_db_func = update_db(self.db)
             stage = self.db.get(id=id_).get('stage', 0)
-            label = self.db.get(id=id_)data.get('file_path') or get_random_string()
+            label = self.db.get(id=id_).data.get('file_path') or get_random_string()
             atoms = atoms.copy() if stage == 0 else read(label + '.log')
             pipe = Pipe({ASEOperator(pm7_opt, pm3_opt).run: 'atoms'},
                         {update_db_func: None},
