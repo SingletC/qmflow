@@ -37,7 +37,7 @@ rm $tdir/ -rf
 %PAL NPROCS 48 END
 %maxcore 3000
 %NEB NEB_END_XYZFILE "init.xyz"
-preopt true
+preopt false
 NImages 8
 END
 * XYZfile 0 1 final.xyz
@@ -65,7 +65,7 @@ END
         return read(f'{self.label}/orca_NEB-TS_converged.xyz')
 
     def get_reactant(self):
-        return read(f'{self.label}/orca_reactant.xyz')
+        return read(f'{self.label}/init.xyz')
 
     def get_product(self):
-        return read(f'{self.label}/orca_product.xyz')
+        return read(f'{self.label}/final.xyz')

@@ -196,9 +196,13 @@ class SubmitKineticViaAndromeda():
             label = self.db.get(id=id_).get('neb_label') or get_random_string()
             self.db.update(id=id_, neb_label=label)
             r_mol, p_mol = get_r_p_from_smiles(canonical_smiles)
-            pm7_opt = Gaussian(method=f'opt(loose,MaxCycles=9999 ) PM7 IOP(2/9=2000) ', nprocshared=1,
+            pm7_opt = Gaussian(method=f'{method}/6-311++G(d,p) opt '
+                                      f'IOp(2/9=2000)'
+                               , nprocshared=os.getenv('GAUSSIAN_N'),
                                output_type='N',
-                               mem='1GB', label=label + "/pm7")
+                               mem=os.getenv('GAUSSIAN_M'),
+                               )
+            pm7_opt.command = os.getenv('GAUSSIAN_CMD')
             try:
                 pm7_opt.calculate(r_mol)
                 pm7_opt.calculate(p_mol)
