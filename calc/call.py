@@ -146,8 +146,8 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
                       'uv': None,
                       'bn_index': 0.0,
                       'nto_type': 0,
-
-                      },stage=stage)
+                      'stage': stage,
+                      })
         except RateLimitException:
             raise RateLimitException
         except FileNotFoundError:

@@ -97,6 +97,7 @@ class Pipe:
             for process in self.processes:
                 process.update = True
         self.counter = 0
+
     def type_check(self):
         for i, process in enumerate(self.processes[::-1]):
             if not process.type_check(self.processes[i - 2].process(None, True)):
@@ -105,10 +106,11 @@ class Pipe:
         else:
             return True
 
-    def run(self, in_: Union[Out, None, dict] = None, dct: dict = None, stage=0):
-        self.counter = stage
+    def run(self, in_: Union[Out, None, dict] = None, dct: dict = None):
         if type(in_) is dict:
             in_ = Out(in_)
+        stage = in_.results.get('stage', 0)
+        self.counter = stage
         if in_ is None and type(dct) is dict:
             in_ = Out(dct)
         for process in self.processes[stage:]:
