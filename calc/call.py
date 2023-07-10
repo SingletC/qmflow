@@ -200,7 +200,7 @@ class SubmitKineticViaAndromeda():
                                       f'IOp(2/9=2000)'
                                , nprocshared=os.getenv('GAUSSIAN_N'),
                                output_type='N',
-                               mem=os.getenv('GAUSSIAN_M'),
+                               mem=os.getenv('GAUSSIAN_M'), label=label,
                                )
             pm7_opt.command = os.getenv('GAUSSIAN_CMD')
             try:
