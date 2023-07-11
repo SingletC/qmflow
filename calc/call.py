@@ -134,6 +134,7 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
                         {update_db_func: None},
                         {TDDFT_Ase(td_calc).run: 'atoms'},
                         {read_td_dft_from_ase: 'uv'},
+                        {generate_nto_mwfn: 'composition'},
                         # {generate_formchk: None},
                         {determine_bncycle_index: 'bn_index'},
                         {determine_nto_type: 'nto_type'},
