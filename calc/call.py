@@ -60,12 +60,12 @@ def read_td_dft_from_ase(label: str) -> dict:
 
 
 def update_db(db: ase.db.core.Database):
-    def inner(id: int, atoms: Atoms, stage: int, uv: dict = None, nto_type: int = 0,
-              bn_index: float = 0.0, ) -> None:
+    def inner(id: int, atoms: Atoms, stage: int, label: str, uv: dict = None, nto_type: int = 0,
+              bn_index: float = 0.0) -> None:
         if not uv:
             uv = {'osc_str': 0, 'lambda': 0}
         db.update(id=id, atoms=atoms, lambda_=uv['lambda'], osc_str=uv['osc_str'], nto_type=nto_type, bn_index=bn_index,
-                  data={'file_path': atoms.calc.label},
+                  data={'file_path': label},
                   stage=stage)
 
     return inner
