@@ -52,8 +52,8 @@ def get_random_string() -> str:
     return './files/' + uuid.uuid4().__str__()
 
 
-def read_td_dft_from_ase(atoms: Atoms) -> dict:
-    log = atoms.calc.label + '.log'
+def read_td_dft_from_ase(label: str) -> dict:
+    log = label.replace('.log', '') + '.log'
     lambda_, osc_str = read_td_dft(log, t=0.05)
     return {'lambda': lambda_,
             'osc_str': osc_str}
@@ -201,14 +201,14 @@ class SubmitKineticViaAndromeda():
                                       f'IOp(2/9=2000)'
                                , nprocshared=os.getenv('GAUSSIAN_N'),
                                output_type='N',
-                               mem=os.getenv('GAUSSIAN_M'), label=label+'/rp_opt',
+                               mem=os.getenv('GAUSSIAN_M'), label=label + '/rp_opt',
                                )
             pm7_opt.command = os.getenv('GAUSSIAN_CMD')
             try:
                 pm7_opt.calculate(r_mol)
-                r_mol = read(label+'/rp_opt.log')
+                r_mol = read(label + '/rp_opt.log')
                 pm7_opt.calculate(p_mol)
-                p_mol = read(label+'/rp_opt.log')
+                p_mol = read(label + '/rp_opt.log')
             except Exception as e:
                 print(e)
             neb = OrcaNEB('M062X 6-311++G(d,p)', label=label)
