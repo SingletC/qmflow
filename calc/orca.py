@@ -13,7 +13,7 @@ class OrcaNEB:
 #SBATCH -N 1
 ulimit -s unlimited
 module purge
-module load orca
+module load orca/5.0.4.ompi411.intel20
 export job=orca
 export RSH_COMMAND="/usr/bin/ssh -x"
 export scratchlocation=/local/
