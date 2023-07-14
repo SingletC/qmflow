@@ -196,29 +196,30 @@ class SubmitKineticViaAndromeda():
             scale = 0.97
             label = self.db.get(id=id_).get('neb_label') or get_random_string()
             self.db.update(id=id_, neb_label=label)
-            r_mol, p_mol = get_r_p_from_smiles(canonical_smiles)
-            pm7_opt = Gaussian(method=f'{method}/6-311++G(d,p) opt(loose) '
-                                      f'IOp(2/9=2000)'
-                               , nprocshared=os.getenv('GAUSSIAN_N'),
-                               output_type='N',
-                               mem=os.getenv('GAUSSIAN_M'), label=label + '/rp_opt',
-                               )
-            pm7_opt.command = os.getenv('GAUSSIAN_CMD')
+            neb = OrcaNEB('M062X 6-311++G(d,p)', label=label)
             try:
+                ts = neb.get_ts()
+                r_mol = neb.get_reactant()
+                p_mol = neb.get_product()
+            except Exception as e:
+                r_mol, p_mol = get_r_p_from_smiles(canonical_smiles)
+                pm7_opt = Gaussian(method=f'{method}/6-311++G(d,p) opt(loose) '
+                                          f'IOp(2/9=2000)'
+                                   , nprocshared=os.getenv('GAUSSIAN_N'),
+                                   output_type='N',
+                                   mem=os.getenv('GAUSSIAN_M'), label=label + '/rp_opt',
+                                   )
+                pm7_opt.command = os.getenv('GAUSSIAN_CMD')
+
                 pm7_opt.calculate(r_mol)
                 r_mol = read(label + '/rp_opt.log')
                 pm7_opt.calculate(p_mol)
                 p_mol = read(label + '/rp_opt.log')
-            except Exception as e:
-                print(e)
-            neb = OrcaNEB('M062X 6-311++G(d,p)', label=label)
-            try:
-                ts = neb.get_ts()
-            except Exception as e:
+
                 neb.run_neb(r_mol, p_mol)
                 ts = neb.get_ts()
-            r_mol = neb.get_reactant()
-            p_mol = neb.get_product()
+
+
             opt_calc = Gaussian(method=f'{method} opt'
                                        f' scale={scale} IOp(2/9=2000) freq'
                                 , nprocshared=os.getenv('GAUSSIAN_N'),
