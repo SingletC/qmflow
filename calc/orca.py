@@ -6,10 +6,10 @@ from ase.io import read
 
 class OrcaNEB:
     batch = """#!/bin/bash
-#SBATCH -t 80:00:00
+#SBATCH -t 5-00:00:00
 #SBATCH --mem 150G
 #SBATCH -p exclusive
-#SBATCH -n 64
+#SBATCH -n 48
 #SBATCH -N 1
 ulimit -s unlimited
 module purge
@@ -33,8 +33,8 @@ rm $tdir/ -rf
     """
 
     def __init__(self, method, label='orca_temp', srun_command=None):
-        self.inp = f"""!{method} NEB-CI
-%PAL NPROCS 64 END
+        self.inp = f"""!{method} NEB-TS
+%PAL NPROCS 48 END
 %maxcore 3000
 %NEB NEB_END_XYZFILE "init.xyz"
 preopt false
@@ -62,7 +62,7 @@ END
         os.system(f'cd {self.label}; {self.srun}')
 
     def get_ts(self):
-        return read(f'{self.label}/orca_NEB-CI_converged.xyz')
+        return read(f'{self.label}/orca_NEB-TS_converged.xyz')
 
     def get_reactant(self):
         return read(f'{self.label}/init.xyz')
