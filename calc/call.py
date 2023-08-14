@@ -119,7 +119,7 @@ class SubmitTDDFTViaAndromeda(SubmitJobProtocol):
                                  mem=os.getenv('GAUSSIAN_M'), )
             opt_calc2.command = os.getenv('GAUSSIAN_CMD')
             td_calc = Gaussian(
-                method=f'{functional}/{basis} IOP(2/9=2000) SCF=Fermi scrf=(smd,solvent=cyclohexane)  TD(nstates=30) ',
+                method=f'{functional}/{basis} IOP(2/9=2000) SCF(novaracc,noincfock,fermi) scrf=(smd,solvent=cyclohexane)  TD(nstates=30) ',
                 nprocshared=os.getenv('GAUSSIAN_N'),
                 output_type='N',
                 mem=os.getenv('GAUSSIAN_M'))
