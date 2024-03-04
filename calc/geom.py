@@ -14,4 +14,4 @@ def calc_rmsd(atoms1: Atoms, atoms2: Atoms) -> float:
     """
     x1 = atoms1.get_positions()
     x2 = atoms2.get_positions()
-    rmsd.kabsch_rmsd(x1, x2, translate=True)
+    return rmsd.kabsch_rmsd(x1, x2, translate=True)
